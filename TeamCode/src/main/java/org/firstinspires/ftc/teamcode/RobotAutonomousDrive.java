@@ -120,7 +120,7 @@ public class RobotAutonomousDrive extends OpMode
     //private BNO055IMU imu;
     private IMU imu         = null;      // Control/Expansion Hub IMU
     
-    EyeAll eye;
+    //EyeAll eye;
 
     private double          robotHeading  = 0;
     private double          headingOffset = 0;
@@ -179,7 +179,7 @@ public class RobotAutonomousDrive extends OpMode
 
     //Four (4) white Pixels, one (1) for each set of Spike Marks. The Pixels will start centered on
     //top of the center Spike Marks
-    private TeamPropLocation propLocation = TeamPropLocation.NONE;
+    private TeamPropLocation propLocation = TeamPropLocation.CENTER;
 
     
     /**
@@ -190,9 +190,9 @@ public class RobotAutonomousDrive extends OpMode
     {
         autoTimer30Sec.reset();
         
-        eye = new EyeAll(hardwareMap);
+        //eye = new EyeAll(hardwareMap);
         
-        eye.autoInit();
+        //eye.autoInit();
     
         // Initialize the drive system variables.
         frontLeft = hardwareMap.get(DcMotor.class, Constants.leftfrontMotor);
@@ -246,7 +246,7 @@ public class RobotAutonomousDrive extends OpMode
 
         AllianceConfig.ReadConfigFromFile(allianceConfig);
 
-        eye.OpenEyeToRead();
+        //eye.OpenEyeToRead();
     }
     
     /*
@@ -278,14 +278,14 @@ public class RobotAutonomousDrive extends OpMode
         
         telemetry.addData("TEAM #: ",
                 allianceConfig.TeamNumber);
-        telemetry.addData("ALLIANCE #: ",
+        telemetry.addData("ALLIANCE : ",
                 allianceConfig.Alliance);
-        telemetry.addData("STARTING LOCATION #: ",
+        telemetry.addData("STARTING LOCATION : ",
                 allianceConfig.Location);
         telemetry.addData("Route #: ",
                 allianceConfig.PathRoute);
 
-        telemetry.addData("Prop Location #: ",
+        telemetry.addData("Prop Location : ",
                 propLocation.toString());
     
         composeTelemetry();
@@ -306,16 +306,16 @@ public class RobotAutonomousDrive extends OpMode
     private enum Mission
     {
         SPOT_A, // init position
-        MOVE_A2B,
-        SPOT_B, // Mid Junction, face to 0 degree
-        MOVE_B2C,
-        SPOT_C, // Cones stock
+        MOVE_A2B,// 12 inches
+        SPOT_B, // turn 90
+        MOVE_B2C, // 24 inches
+        SPOT_C, // turn to -90
         MOVE_C2D,
-        SPOT_D, // Mid Junction, face to -90 degree
+        SPOT_D, //
         MOVE_D2C,
         MOVE_C2E,
         MOVE_D2E,
-        SPOT_E, // parking zone, final stop
+        SPOT_E, // backdrop zone, final stop
         EXIT
     }
     
@@ -434,13 +434,13 @@ public class RobotAutonomousDrive extends OpMode
                 break;
         }
         
-        lifterMotorRunnable();
-        rotatorMotorRunnable();
-        armMotorRunnable();
+//        lifterMotorRunnable();
+//        rotatorMotorRunnable();
+//        armMotorRunnable();
     
         addLog();
     
-        TuningHandMotors(gamepad1); // TODO debug
+        //TuningHandMotors(gamepad1); // TODO debug
     
         //sendTelemetry(true);
         composeTelemetry(); //don't need it, just update it with presets
@@ -458,12 +458,12 @@ public class RobotAutonomousDrive extends OpMode
     private void setMissionTo(Mission newMission)
     {
         // debug: TODO
-        if(newMission == Mission.MOVE_A2B)
-        {
-            currentMission = Mission.EXIT;
-            missionStepTimeout = 1000;
-            return;
-        }
+//        if(newMission == Mission.MOVE_A2B)
+//        {
+//            currentMission = Mission.EXIT;
+//            missionStepTimeout = 1000;
+//            return;
+//        }
         // end debug
     
         previousMission = currentMission;
@@ -557,8 +557,8 @@ public class RobotAutonomousDrive extends OpMode
         }
         else if (currentTaskID == 1)
         {
-            boolean done = driveStrafeLoop(moveA2B_Strafe0, DRIVE_SPEED, 5, 0.0);
-            if (taskRunTimeout.seconds() >= 10)
+            boolean done = driveStrafeLoop(12, DRIVE_SPEED, 5, 0.0);
+            if (taskRunTimeout.seconds() >= 5)
             {
                 // timeout, bad! should not happen at all
                 resetDriveLoops();
@@ -571,7 +571,7 @@ public class RobotAutonomousDrive extends OpMode
         }
         else if (currentTaskID == 2)
         {
-            boolean done = driveStraightLoop(DRIVE_SPEED, moveA2B_Straight0, 0.0);
+            boolean done = driveStraightLoop(DRIVE_SPEED, 24, 0.0);
             if (taskRunTimeout.seconds() >= 10)
             {
                 // timeout, bad! should not happen at all
@@ -580,9 +580,37 @@ public class RobotAutonomousDrive extends OpMode
             }
             else if (done)
             {
-                setMissionTo(Mission.SPOT_B);
+                setTaskTo(3);
             }
             //targetPositionArm = 1000; // rising arm up while moving forward
+        }
+        else if(currentTaskID == 3)
+        {
+            boolean done = turnToHeadingLoop(TURN_SPEED, 90);
+            if(taskRunTimeout.seconds() >= 5)
+            {
+                // timeout, bad! should not happen at all
+                resetDriveLoops();
+                setMissionTo(Mission.EXIT);
+            }
+            else if( done )
+            {
+                setTaskTo(4);
+            }
+        }
+        else if (currentTaskID == 4)
+        {
+            boolean done = driveStraightLoop(DRIVE_SPEED, 24, 90);
+            if (taskRunTimeout.seconds() >= 10)
+            {
+                // timeout, bad! should not happen at all
+                resetDriveLoops();
+                setMissionTo(Mission.EXIT);
+            }
+            else if (done)
+            {
+                setMissionTo(Mission.EXIT);
+            }
         }
     }
     int error_lr;
@@ -792,10 +820,10 @@ public class RobotAutonomousDrive extends OpMode
         {
             if (taskRunTimeout.seconds() < 5) // debug: TODO
             {
-                if(Objects.equals(allianceConfig.Alliance, AllianceConfig.RED))
-                    isConeCenter = eye.CheckObjectLocation(EyeAll.TargetOjbect.RED_CONE);
-                else
-                    isConeCenter = eye.CheckObjectLocation(EyeAll.TargetOjbect.BLUE_CONE);
+//                if(Objects.equals(allianceConfig.Alliance, AllianceConfig.RED))
+//                    isConeCenter = eye.CheckObjectLocation(EyeAll.TargetOjbect.RED_CONE);
+//                else
+//                    isConeCenter = eye.CheckObjectLocation(EyeAll.TargetOjbect.BLUE_CONE);
                 
                 if (isConeCenter == EyeAll.ObjectLocation.CENTER)
                 {
@@ -1475,12 +1503,14 @@ public class RobotAutonomousDrive extends OpMode
         telemetry.addLine()
                 .addData("Mission #", currentMission)
                 .addData("Task #", currentTaskID);
-    
-        telemetry.addData("Camera On?", eye.IsOpen);
-        telemetry.addData("Pole Location", isCenterPole);
-        telemetry.addData("Cone Location", isConeCenter);
-    
+
         telemetry.addData("IMU heading", "%.2f", getRawHeading());
+    
+        //telemetry.addData("Camera On?", eye.IsOpen);
+        telemetry.addData("April Tag ID #", isCenterPole);
+        //telemetry.addData("Cone Location", isConeCenter);
+    
+
     
 //        telemetry.addLine()
 //                .addData("Eye", "%.2f", eyeServo.getPosition())
