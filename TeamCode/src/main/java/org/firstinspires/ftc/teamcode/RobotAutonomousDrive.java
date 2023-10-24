@@ -557,8 +557,15 @@ public class RobotAutonomousDrive extends OpMode
         }
         else if (currentTaskID == 1)
         {
-            boolean done = driveStrafeLoop(12, DRIVE_SPEED, 5, 0.0);
-            if (taskRunTimeout.seconds() >= 5)
+            boolean done;
+            if(allianceConfig.Alliance == AllianceConfig.RED && allianceConfig.Location == AllianceConfig.LEFT )
+                done = driveStraightLoop(DRIVE_SPEED, 24, 0.0);
+            else if(allianceConfig.Alliance == AllianceConfig.BLUE && allianceConfig.Location == AllianceConfig.RIGHT)
+                done = driveStraightLoop(DRIVE_SPEED, 24, 0.0);
+            else
+                done = driveStraightLoop(DRIVE_SPEED, 12, 0.0);
+
+            if (taskRunTimeout.seconds() >= 10)
             {
                 // timeout, bad! should not happen at all
                 resetDriveLoops();
@@ -568,10 +575,24 @@ public class RobotAutonomousDrive extends OpMode
             {
                 setTaskTo(2);
             }
+            //targetPositionArm = 1000; // rising arm up while moving forward
         }
         else if (currentTaskID == 2)
         {
-            boolean done = driveStraightLoop(DRIVE_SPEED, 24, 0.0);
+            boolean done;
+            if(allianceConfig.Alliance == AllianceConfig.RED )
+                if( allianceConfig.Location == AllianceConfig.RIGHT )
+                    done = driveStrafeLoop(-16, DRIVE_SPEED, 10, 0.0);
+                else
+                    done = driveStrafeLoop(-40, DRIVE_SPEED, 10, 0.0);
+            else if(allianceConfig.Alliance == AllianceConfig.BLUE )
+                if( allianceConfig.Location == AllianceConfig.LEFT)
+                    done = driveStrafeLoop(16, DRIVE_SPEED, 10, 0.0);
+                else
+                    done = driveStrafeLoop(40, DRIVE_SPEED, 10, 0.0);
+            else
+                done = false;
+
             if (taskRunTimeout.seconds() >= 10)
             {
                 // timeout, bad! should not happen at all
@@ -582,7 +603,6 @@ public class RobotAutonomousDrive extends OpMode
             {
                 setTaskTo(3);
             }
-            //targetPositionArm = 1000; // rising arm up while moving forward
         }
         else if(currentTaskID == 3)
         {
