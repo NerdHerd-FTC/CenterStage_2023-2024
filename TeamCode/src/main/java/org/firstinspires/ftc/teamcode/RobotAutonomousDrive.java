@@ -31,6 +31,8 @@ package org.firstinspires.ftc.teamcode;
 
 import static com.qualcomm.hardware.rev.RevHubOrientationOnRobot.xyzOrientation;
 
+import static org.firstinspires.ftc.teamcode.BuildConfig.*;
+
 import android.util.Log;
 
 //import com.qualcomm.hardware.bosch.BNO055IMU;
@@ -275,7 +277,8 @@ public class RobotAutonomousDrive extends OpMode
         //lifterMotorRunnable();
         //rotatorMotorRunnable();
         //armMotorRunnable();
-        
+        telemetry.addData("Software Version: ",
+            BuildConfig.BUILD_TIME);
         telemetry.addData("TEAM #: ",
                 allianceConfig.TeamNumber);
         telemetry.addData("ALLIANCE : ",
@@ -305,17 +308,10 @@ public class RobotAutonomousDrive extends OpMode
     // SPOT is loop-able function, MOVE is onetime execution function
     private enum Mission
     {
-        SPOT_A, // init position
-        MOVE_A2B,// 12 inches
-        SPOT_B, // turn 90
-        MOVE_B2C, // 24 inches
-        SPOT_C, // turn to -90
-        MOVE_C2D,
-        SPOT_D, //
-        MOVE_D2C,
-        MOVE_C2E,
-        MOVE_D2E,
-        SPOT_E, // backdrop zone, final stop
+        SPOT_A,
+        MOVE_A2B,
+        SPOT_B,
+
         EXIT
     }
     
@@ -348,35 +344,6 @@ public class RobotAutonomousDrive extends OpMode
                 }
                 spotB(-520, false);
                 break;
-            case SPOT_C:
-                if (missionRunTimer.seconds() > missionStepTimeout)
-                {
-                    // Error!
-                    setMissionTo(Mission.EXIT);
-                    break;
-                }
-                // pick up a new cone from stock
-                spotC();
-                break;
-            case SPOT_D:
-                if (missionRunTimer.seconds() > missionStepTimeout)
-                {
-                    // Error!
-                    setMissionTo(Mission.EXIT);
-                    break;
-                }
-                // drop cone on mid junction
-                spotB(-500, true);
-                break;
-            case SPOT_E:
-                if (missionRunTimer.seconds() > missionStepTimeout)
-                {
-                    // Error!
-                    setMissionTo(Mission.EXIT);
-                    break;
-                }
-                // final parking zone
-                break;
             case MOVE_A2B:
                 if (missionRunTimer.seconds() > missionStepTimeout)
                 {
@@ -386,50 +353,7 @@ public class RobotAutonomousDrive extends OpMode
                 }
                 moveA2B();
                 break;
-            case MOVE_B2C:
-                if (missionRunTimer.seconds() > missionStepTimeout)
-                {
-                    // Error!
-                    setMissionTo(Mission.EXIT);
-                    break;
-                }
-                moveB2C();
-                break;
-            case MOVE_C2D:
-                if (missionRunTimer.seconds() > missionStepTimeout)
-                {
-                    // Error!
-                    setMissionTo(Mission.EXIT);
-                    break;
-                }
-                moveC2D();
-                break;
-            case MOVE_D2C:
-                if (missionRunTimer.seconds() > missionStepTimeout)
-                {
-                    // Error!
-                    setMissionTo(Mission.EXIT);
-                    break;
-                }
-                moveD2C();
-            case MOVE_C2E:
-                if (missionRunTimer.seconds() > missionStepTimeout)
-                {
-                    // Error!
-                    setMissionTo(Mission.EXIT);
-                    break;
-                }
-                moveC2E();
-                break;
-            case MOVE_D2E:
-                if (missionRunTimer.seconds() > missionStepTimeout)
-                {
-                    // Error!
-                    setMissionTo(Mission.EXIT);
-                    break;
-                }
-                moveD2E();
-                break;
+
             default: //EXIT
                 break;
         }
@@ -640,10 +564,10 @@ public class RobotAutonomousDrive extends OpMode
     {
         if(currentTaskID == 0)
         {
-            
+
             targetPositionArm = 2500;//PredefinedPosition.Drop_X_3.ArmMotor;//Constants.ARM_SPOT_B; //
             //if(allianceConfig.Location == AllianceConfig.LEFT)
-    
+
             extraDistance = 0;
             setTaskTo(1);
         }
@@ -674,7 +598,7 @@ public class RobotAutonomousDrive extends OpMode
                 else if (isCenterPole == EyeAll.ObjectLocation.FAR_TO_CAMERA)
                 {
                     error_fn = EyeAll.cameraConfig.PoleWidth - EyeAll.objectFoundInfo.width_avg;
-                    
+
                     chassisMoveDistance = 2;
                     extraDistance -= 2;
                     setTaskTo(5);*/
@@ -728,13 +652,13 @@ public class RobotAutonomousDrive extends OpMode
                 // if we still have time, otherwise to B2D
                 if(autoTimer30Sec.seconds() < 20)
                 {
-                    if(isD)
-                        setMissionTo(Mission.MOVE_D2C);
-                    else
-                        setMissionTo(Mission.MOVE_B2C);
+//                    if(isD)
+//                        setMissionTo(Mission.MOVE_D2C);
+//                    else
+//                        setMissionTo(Mission.MOVE_B2C);
                 }
                 //setMissionTo(Mission.MOVE_B2E);
-    
+
                 targetPositionRotator = 0;
             }
         }
@@ -806,7 +730,7 @@ public class RobotAutonomousDrive extends OpMode
             }
             else if( done )
             {
-                setMissionTo(Mission.SPOT_C);
+//                setMissionTo(Mission.SPOT_C);
                 extraDistance = 0;
             }
         }
@@ -878,7 +802,7 @@ public class RobotAutonomousDrive extends OpMode
             else
             {
                 // nothing is found, timeout. Go parking
-                setMissionTo(Mission.MOVE_C2E);
+//                setMissionTo(Mission.MOVE_C2E);
             }
         }
         else if(currentTaskID == 2)
@@ -940,14 +864,14 @@ public class RobotAutonomousDrive extends OpMode
             
             // if we still have time, otherwise to parking zone
             autoTimer30Sec.reset();// todo debug
-            if(autoTimer30Sec.seconds() < 24)
-            {
-                setMissionTo(Mission.MOVE_C2D);
-            }
-            else
-            {
-                setMissionTo(Mission.MOVE_C2E);
-            }
+//            if(autoTimer30Sec.seconds() < 24)
+//            {
+//                setMissionTo(Mission.MOVE_C2D);
+//            }
+//            else
+//            {
+//                setMissionTo(Mission.MOVE_C2E);
+//            }
         }
     }
     
@@ -972,7 +896,7 @@ public class RobotAutonomousDrive extends OpMode
             }
             else if( done )
             {
-                setMissionTo(Mission.SPOT_D);
+//                setMissionTo(Mission.SPOT_D);
             }
         }
     }
@@ -999,7 +923,7 @@ public class RobotAutonomousDrive extends OpMode
             }
             else if (done)
             {
-                setMissionTo(Mission.SPOT_C);
+//                setMissionTo(Mission.SPOT_C);
             }
         }
     }
@@ -1025,7 +949,7 @@ public class RobotAutonomousDrive extends OpMode
             }
             else if( done )
             {
-                setMissionTo(Mission.SPOT_C);
+//                setMissionTo(Mission.SPOT_C);
             }
         }
     }

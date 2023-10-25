@@ -27,6 +27,10 @@ android {
         }
         jniLibs.useLegacyPackaging true
     }
+    defaultConfig {
+        def buildTime = new Date()
+        buildConfigField "String", "BUILD_TIME", "\"${buildTime.format('yyyy-MM-dd HH:mm:ss')}\""
+    }
 }
 
 dependencies {

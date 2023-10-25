@@ -71,7 +71,8 @@ public class CalibrationTeamAlliance extends LinearOpMode
         boolean keylock_b = false;
         boolean keylock_x = false;
         boolean keylock_y = false;
-        
+
+        boolean keylock_down = false;
         boolean keylock_up = false;
         boolean keylock_left = false;
         boolean keylock_right = false;
@@ -81,6 +82,19 @@ public class CalibrationTeamAlliance extends LinearOpMode
         // Loop and update the dashboard
         while (opModeIsActive())
         {
+            if (gamepad1.dpad_down)
+            {
+                if (!keylock_down)
+                {
+                    keylock_down = true;
+                    config.PathRoute = "0";
+                }
+            }
+            else
+            {
+                keylock_down = false;
+            }
+
             if (gamepad1.dpad_left)
             {
                 if (!keylock_left)
@@ -173,7 +187,7 @@ public class CalibrationTeamAlliance extends LinearOpMode
             }
             
             if( keylock_a|| keylock_b||keylock_x|| keylock_y ||
-                    keylock_left || keylock_right || keylock_up)
+                    keylock_left || keylock_right || keylock_up || keylock_down)
             {
                 telemetry.addLine("Saving Config: " +
                         config.TeamNumber + " " + config.Alliance.toString() +
