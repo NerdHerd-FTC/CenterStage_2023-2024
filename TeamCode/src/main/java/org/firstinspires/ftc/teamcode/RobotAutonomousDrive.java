@@ -470,6 +470,7 @@ public class RobotAutonomousDrive extends OpMode
     
     double moveA2B_Strafe0;
     double moveA2B_Straight0;
+    double moveA2B_Heading0;
     private void moveA2B()
     {
         // Notes:   Reverse movement is obtained by setting a negative distance (not speed)
@@ -477,17 +478,21 @@ public class RobotAutonomousDrive extends OpMode
         
         if (currentTaskID == 0)
         {
+            if(allianceConfig.PathRoute == "0")
+                moveA2B_Straight0 = 3;
+            else {
+                if ((allianceConfig.Alliance == AllianceConfig.RED && allianceConfig.Location == AllianceConfig.LEFT) ||
+                        (allianceConfig.Alliance == AllianceConfig.BLUE && allianceConfig.Location == AllianceConfig.RIGHT))
+                    moveA2B_Straight0 = 24;
+                else
+                    moveA2B_Straight0 = 12;
+            }
+
             setTaskTo(1);
         }
         else if (currentTaskID == 1)
         {
-            boolean done;
-            if(allianceConfig.Alliance == AllianceConfig.RED && allianceConfig.Location == AllianceConfig.LEFT )
-                done = driveStraightLoop(DRIVE_SPEED, 24, 0.0);
-            else if(allianceConfig.Alliance == AllianceConfig.BLUE && allianceConfig.Location == AllianceConfig.RIGHT)
-                done = driveStraightLoop(DRIVE_SPEED, 24, 0.0);
-            else
-                done = driveStraightLoop(DRIVE_SPEED, 12, 0.0);
+            boolean done = driveStraightLoop(DRIVE_SPEED, moveA2B_Straight0, 0.0);
 
             if (taskRunTimeout.seconds() >= 10)
             {
