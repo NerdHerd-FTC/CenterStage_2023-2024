@@ -116,7 +116,7 @@ public class RobotAutonomousDrive extends OpMode
     //private BNO055IMU imu;
     private IMU imu         = null;      // Control/Expansion Hub IMU
     
-    EyeAll eye;
+    EyeAll eye = null;
 
     private double          robotHeading  = 0;
     private double          headingOffset = 0;
@@ -178,9 +178,10 @@ public class RobotAutonomousDrive extends OpMode
     {
         autoTimer30Sec.reset();
         
-        eye = new EyeAll(hardwareMap);
-        
-        eye.autoInit();
+        eye = new EyeAll(hardwareMap); // comment it out if not camera installed
+
+        if(eye!= null)
+            eye.autoInit();
     
         // Initialize the drive system variables.
         frontLeft = hardwareMap.get(DcMotor.class, Constants.leftfrontMotor);
@@ -235,7 +236,8 @@ public class RobotAutonomousDrive extends OpMode
         AllianceConfig.ReadConfigFromFile(allianceConfig);
 
         //eye.OpenEyeToRead();
-        eye.OpenEyeToFindProps();
+        if(eye!= null)
+            eye.OpenEyeToFindProps();
     }
     
     /*
@@ -243,6 +245,8 @@ public class RobotAutonomousDrive extends OpMode
      */
     @Override
     public void stop() {
+        if(eye!= null)
+            eye.CloseEye();
     }
     
     /*
@@ -258,11 +262,13 @@ public class RobotAutonomousDrive extends OpMode
     @Override
     public void init_loop()
     {
-        if(allianceConfig.Alliance == AllianceConfig.RED)
-            propsLocation = eye.CheckPropsLocation(EyeAll.TargetObject.RED_CONE);
-        else
-            propsLocation = eye.CheckPropsLocation(EyeAll.TargetObject.BLUE_CONE);
-    
+        if(eye!= null) {
+            if (allianceConfig.Alliance == AllianceConfig.RED)
+                propsLocation = eye.CheckPropsLocation(EyeAll.TargetObject.RED_CONE);
+            else
+                propsLocation = eye.CheckPropsLocation(EyeAll.TargetObject.BLUE_CONE);
+        }
+
         TuningHandMotors(gamepad1); // TODO debug
         //lifterMotorRunnable();
         //rotatorMotorRunnable();

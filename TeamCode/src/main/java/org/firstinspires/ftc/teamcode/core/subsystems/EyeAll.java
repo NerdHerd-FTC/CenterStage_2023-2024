@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.teamcode.core.Subsystem;
-import org.firstinspires.ftc.teamcode.util.CameraConfig;
+//import org.firstinspires.ftc.teamcode.util.CameraConfig;
 import org.firstinspires.ftc.teamcode.util.Constants;
 import org.firstinspires.ftc.teamcode.util.Util;
 import org.opencv.calib3d.Calib3d;
@@ -43,7 +43,7 @@ public class EyeAll extends Subsystem
     private AprilTagDetectionPipeline aprilTagDetectionPipeline;
     private HardwareMap hardwareMap;
     
-    public static CameraConfig.CameraConfigData cameraConfig = new CameraConfig.CameraConfigData();
+    //public static CameraConfig.CameraConfigData cameraConfig = new CameraConfig.CameraConfigData();
     
     public boolean IsOpen = false;
     
@@ -97,11 +97,11 @@ public class EyeAll extends Subsystem
         webcam = OpenCvCameraFactory.getInstance().createWebcam(
                 hardwareMap.get(WebcamName.class, Constants.frontWebcamera), cameraMonitorViewId);
     
-        if( null == CameraConfig.ReadConfigFromFile(cameraConfig))
-        {
-            // do the camera calibration first
-            stop();
-        }
+//        if( null == CameraConfig.ReadConfigFromFile(cameraConfig))
+//        {
+//            // do the camera calibration first
+//            stop();
+//        }
     
         propsDetectionPipeline = new PropsDetectionPipeline();
         aprilTagDetectionPipeline = new AprilTagDetectionPipeline(tagsize, fx, fy, cx, cy);
@@ -219,10 +219,10 @@ public class EyeAll extends Subsystem
     }
     
     // backdoor to pock the data into system
-    public void UpdateConfigDataLoop(CameraConfig.CameraConfigData config)
-    {
-        cameraConfig.Copy(config);
-    }
+//    public void UpdateConfigDataLoop(CameraConfig.CameraConfigData config)
+//    {
+//        cameraConfig.Copy(config);
+//    }
     
     public enum ObjectLocation
     {
@@ -341,22 +341,22 @@ public class EyeAll extends Subsystem
         }
     }
     
-    public ObjectLocation CheckObjectLocation(TargetObject newtarget)
-    {
-        ObjectLocation result = ObjectLocation.UNKNOWN;
-        
-        if(objectFoundInfo.name != newtarget)
-        {
-            objectFoundInfo.name = newtarget;
-        }
-        
-        if(newtarget == TargetObject.RED_CONE || newtarget == TargetObject.BLUE_CONE)
-        {
-            result = CheckConeOnCenterLoop();
-        }
-        
-        return result;
-    }
+//    public ObjectLocation CheckObjectLocation(TargetObject newtarget)
+//    {
+//        ObjectLocation result = ObjectLocation.UNKNOWN;
+//
+//        if(objectFoundInfo.name != newtarget)
+//        {
+//            objectFoundInfo.name = newtarget;
+//        }
+//
+//        if(newtarget == TargetObject.RED_CONE || newtarget == TargetObject.BLUE_CONE)
+//        {
+//            result = CheckConeOnCenterLoop();
+//        }
+//
+//        return result;
+//    }
 
     public ObjectLocation CheckPropsLocation(TargetObject newtarget)
     {
@@ -412,15 +412,12 @@ public class EyeAll extends Subsystem
         }
     }
 
+    static final int ConePointAX = 100; // to be calibrated
+    static final int ConePointBX = 300; // to be calibrated
+
+    static final int ConePointAY = 0;
+    static final int ConePointBY = 0;
     private ObjectLocation CheckPropsLocationLoop()
-    {
-        // To be done::
-        return ObjectLocation.CENTER;
-    }
-
-
-    boolean doneInitCone = false;
-    private ObjectLocation CheckConeOnCenterLoop()
     {
         if(!doneInitCone)
         {
@@ -430,7 +427,7 @@ public class EyeAll extends Subsystem
         countTotalLR++;
 
         int centero = Util.inBoundary(objectFoundInfo.center_x_avg,
-                cameraConfig.ConePointAX, cameraConfig.ConePointBX);
+                ConePointAX, ConePointBX);
         if( centero == 0)
         {
             countCenterLR++;
@@ -443,7 +440,7 @@ public class EyeAll extends Subsystem
         {
             countRIGHT++;
         }
-    
+
         if(countTotalLR < RETRY_MAX)
         {
             objectFoundInfo.lrPosition = ObjectLocation.WAITING;
@@ -470,57 +467,112 @@ public class EyeAll extends Subsystem
             countRIGHT = 0;
             countLEFT = 0;
         }
-    
-        countTotalFB++;
-        int widthp = Util.inBoundary(objectFoundInfo.width_avg,
-                cameraConfig.ConeWidth, cameraConfig.ConeWidth*1.2);
-        if( 0 == widthp)
-        {
-            countCenterFB++;
-        }
-        else if( -1 == widthp)
-        {
-            countFRONT++;
-        }
-        else
-        {
-            countBACK++;
-        }
-    
-        if(countTotalFB < RETRY_MAX)
-        {
-            objectFoundInfo.fbPosition = ObjectLocation.WAITING;
-        }
-        else
-        {
-            if (countCenterFB >= countTotalFB * 0.6)
-            {
-                objectFoundInfo.fbPosition = ObjectLocation.CENTER;
-            }
-            else
-            {
-                if(countBACK > countFRONT)
-                {
-                    objectFoundInfo.fbPosition = ObjectLocation.NEAR_TO_CAMERA;
-                }
-                else
-                {
-                    objectFoundInfo.fbPosition = ObjectLocation.FAR_TO_CAMERA;
-                }
-            }
-            countTotalFB = 0;
-            countCenterFB = 0;
-            countBACK = 0;
-            countFRONT = 0;
-        }
-        
-        if(objectFoundInfo.lrPosition != ObjectLocation.CENTER )
-            return objectFoundInfo.lrPosition;
-        else
-        {
-            return  objectFoundInfo.fbPosition;
-        }
+        return objectFoundInfo.lrPosition;
     }
+
+
+    boolean doneInitCone = false;
+//    private ObjectLocation CheckConeOnCenterLoop()
+//    {
+//        if(!doneInitCone)
+//        {
+//            doneInitCone = true;
+//            resetCount();
+//        }
+//        countTotalLR++;
+//
+//        int centero = Util.inBoundary(objectFoundInfo.center_x_avg,
+//                cameraConfig.ConePointAX, cameraConfig.ConePointBX);
+//        if( centero == 0)
+//        {
+//            countCenterLR++;
+//        }
+//        else if(centero== -1 )
+//        {
+//            countLEFT++;
+//        }
+//        else
+//        {
+//            countRIGHT++;
+//        }
+//
+//        if(countTotalLR < RETRY_MAX)
+//        {
+//            objectFoundInfo.lrPosition = ObjectLocation.WAITING;
+//        }
+//        else
+//        {
+//            if (countCenterLR >= countTotalLR * 0.6)
+//            {
+//                objectFoundInfo.lrPosition = ObjectLocation.CENTER;
+//            }
+//            else
+//            {
+//                if(countRIGHT > countLEFT)
+//                {
+//                    objectFoundInfo.lrPosition = ObjectLocation.ON_CAMERA_RIGHT;
+//                }
+//                else
+//                {
+//                    objectFoundInfo.lrPosition = ObjectLocation.ON_CAMERA_LEFT;
+//                }
+//            }
+//            countTotalLR = 0;
+//            countCenterLR = 0;
+//            countRIGHT = 0;
+//            countLEFT = 0;
+//        }
+//
+//        countTotalFB++;
+//        int widthp = Util.inBoundary(objectFoundInfo.width_avg,
+//                cameraConfig.ConeWidth, cameraConfig.ConeWidth*1.2);
+//        if( 0 == widthp)
+//        {
+//            countCenterFB++;
+//        }
+//        else if( -1 == widthp)
+//        {
+//            countFRONT++;
+//        }
+//        else
+//        {
+//            countBACK++;
+//        }
+//
+//        if(countTotalFB < RETRY_MAX)
+//        {
+//            objectFoundInfo.fbPosition = ObjectLocation.WAITING;
+//        }
+//        else
+//        {
+//            if (countCenterFB >= countTotalFB * 0.6)
+//            {
+//                objectFoundInfo.fbPosition = ObjectLocation.CENTER;
+//            }
+//            else
+//            {
+//                if(countBACK > countFRONT)
+//                {
+//                    objectFoundInfo.fbPosition = ObjectLocation.NEAR_TO_CAMERA;
+//                }
+//                else
+//                {
+//                    objectFoundInfo.fbPosition = ObjectLocation.FAR_TO_CAMERA;
+//                }
+//            }
+//            countTotalFB = 0;
+//            countCenterFB = 0;
+//            countBACK = 0;
+//            countFRONT = 0;
+//        }
+//
+//        if(objectFoundInfo.lrPosition != ObjectLocation.CENTER )
+//            return objectFoundInfo.lrPosition;
+//        else
+//        {
+//            return  objectFoundInfo.fbPosition;
+//        }
+//    }
     
     
     public static class PropsDetectionPipeline extends TimestampedOpenCvPipeline //OpenCvPipeline
@@ -619,11 +671,11 @@ public class EyeAll extends Subsystem
         public void init(Mat mat)
         {
             targetConePointA = new Point(
-                    cameraConfig.ConePointAX,
-                    cameraConfig.ConePointAY);
+                    ConePointAX,
+                    ConePointAY);
             targetConePointB = new Point(
-                    cameraConfig.ConePointBX,
-                    cameraConfig.ConePointBY);
+                    ConePointBX,
+                    ConePointBY);
             //timeTextAnchor = new Point(0, 15);
             //stageTextAnchor = new Point(540, mat.height()-10);
             coneConfigTextAnchor = new Point(0, 30);
@@ -632,8 +684,8 @@ public class EyeAll extends Subsystem
             locationTextAnchorFBPoint = new Point(0, 165);
             pathCenterTextAnchorPoint = new Point(Constants.CameraViewWidth-150,
                     Constants.CameraViewHeight/2);
-            pathLinePointA = new Point(cameraConfig.PathCenterX, 0);
-            pathLinePointB = new Point(cameraConfig.PathCenterX, Constants.CameraViewHeight);
+//            pathLinePointA = new Point(cameraConfig.PathCenterX, 0);
+//            pathLinePointB = new Point(cameraConfig.PathCenterX, Constants.CameraViewHeight);
             runtime.reset();
         }
     
@@ -720,11 +772,11 @@ public class EyeAll extends Subsystem
         private void DisplayInfo(Mat input)
         {
             targetConePointA = new Point(
-                    cameraConfig.ConePointAX,
-                    cameraConfig.ConePointAY);
+                    ConePointAX,
+                    ConePointAY);
             targetConePointB = new Point(
-                    cameraConfig.ConePointBX,
-                    cameraConfig.ConePointBY);
+                    ConePointBX,
+                    ConePointBY);
             Imgproc.rectangle(
                     input, // Buffer to draw on
                     targetConePointA, // First point which defines the rectangle
@@ -732,13 +784,13 @@ public class EyeAll extends Subsystem
                     PURPLE, // The color the rectangle is drawn in
                     2); // Thickness of the rectangle lines
     
-            String lb = String.format("A(%d,%d)", cameraConfig.ConePointAX, cameraConfig.ConePointAY);
+            String lb = String.format("A(%d,%d)", ConePointAX, ConePointAY);
             Imgproc.putText(input, lb,
                     targetConePointA, Imgproc.FONT_HERSHEY_PLAIN, // Font
                     0.7, // Font size
                     GREEN, // Font color
                     1);
-            lb = String.format("B(%d,%d)", cameraConfig.ConePointBX, cameraConfig.ConePointBY);
+            lb = String.format("B(%d,%d)", ConePointBX, ConePointBY);
             Imgproc.putText(input, lb,
                     targetConePointB, Imgproc.FONT_HERSHEY_PLAIN, // Font
                     0.7, // Font size
@@ -746,15 +798,15 @@ public class EyeAll extends Subsystem
                     1);
 
     
-            lb = String.format("Cone Target - Width: %d-%d, Red Color: %d, Blue Color: %d",
-                    cameraConfig.ConeWidth, (int)(cameraConfig.ConeWidth*1.2),
-                    cameraConfig.Red, cameraConfig.Blue);
-            Imgproc.putText(input, lb,
-                    coneConfigTextAnchor,
-                    Imgproc.FONT_HERSHEY_PLAIN, // Font
-                    1, // Font size
-                    PURPLE, // Font color
-                    1);
+//            lb = String.format("Cone Target - Width: %d-%d, Red Color: %d, Blue Color: %d",
+//                    cameraConfig.ConeWidth, (int)(cameraConfig.ConeWidth*1.2),
+//                    cameraConfig.Red, cameraConfig.Blue);
+//            Imgproc.putText(input, lb,
+//                    coneConfigTextAnchor,
+//                    Imgproc.FONT_HERSHEY_PLAIN, // Font
+//                    1, // Font size
+//                    PURPLE, // Font color
+//                    1);
 
     
             lb = String.format("Task: " + KeypadAdjTask);
@@ -779,17 +831,17 @@ public class EyeAll extends Subsystem
                     1, // Font size
                     RED, // Font color
                     1);
-    
-            lb = String.format("Path Center: " + cameraConfig.PathCenterX);
-            Imgproc.putText(input, lb,
-                    pathCenterTextAnchorPoint,
-                    Imgproc.FONT_HERSHEY_PLAIN, // Font
-                    1, // Font size
-                    GREEN, // Font color
-                    1);
-            pathLinePointA = new Point(cameraConfig.PathCenterX, 0);
-            pathLinePointB = new Point(cameraConfig.PathCenterX, Constants.CameraViewHeight);
-            Imgproc.line(input, pathLinePointA, pathLinePointB, GREEN);
+//
+//            lb = String.format("Path Center: " + cameraConfig.PathCenterX);
+//            Imgproc.putText(input, lb,
+//                    pathCenterTextAnchorPoint,
+//                    Imgproc.FONT_HERSHEY_PLAIN, // Font
+//                    1, // Font size
+//                    GREEN, // Font color
+//                    1);
+//            pathLinePointA = new Point(cameraConfig.PathCenterX, 0);
+//            pathLinePointB = new Point(cameraConfig.PathCenterX, Constants.CameraViewHeight);
+//            Imgproc.line(input, pathLinePointA, pathLinePointB, GREEN);
         }
         
         /*Color Y Value Cr Value Cb Value
@@ -834,9 +886,9 @@ public class EyeAll extends Subsystem
             {
                 Core.extractChannel(yCbCrChanMat, yCbCrChanMat, 1);
                 
-                //CB_CHAN_MASK_THRESHOLD:180
+                final int CB_CHAN_MASK_THRESHOLD_RED = 180; //cameraConfig.Red
                 Imgproc.threshold(yCbCrChanMat, thresholdMat,
-                        cameraConfig.Red, 255, Imgproc.THRESH_BINARY);
+                        CB_CHAN_MASK_THRESHOLD_RED, 255, Imgproc.THRESH_BINARY);
     
                 /*
                  * Apply some erosion and dilation for noise reduction
@@ -851,9 +903,9 @@ public class EyeAll extends Subsystem
             {
                 Core.extractChannel(yCbCrChanMat, yCbCrChanMat, 2);
                 
-                //CB_CHAN_MASK_THRESHOLD:160
+                final int CB_CHAN_MASK_THRESHOLD_BLUE = 160; // cameraConfig.Blue
                 Imgproc.threshold(yCbCrChanMat, thresholdMat,
-                        cameraConfig.Blue, 255, Imgproc.THRESH_BINARY);
+                        CB_CHAN_MASK_THRESHOLD_BLUE, 255, Imgproc.THRESH_BINARY);
     
                 Imgproc.erode(thresholdMat, morphedThreshold, erodeElementBlue);
                 Imgproc.erode(morphedThreshold, morphedThreshold, erodeElementBlue);
