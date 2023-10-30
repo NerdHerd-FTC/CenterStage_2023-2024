@@ -39,7 +39,7 @@ import java.util.List;
 public class EyeAll extends Subsystem
 {
     private OpenCvWebcam webcam;
-    private DetectionPipeline pipeline_find;
+    private PropsDetectionPipeline propsDetectionPipeline;
     private AprilTagDetectionPipeline aprilTagDetectionPipeline;
     private HardwareMap hardwareMap;
     
@@ -47,10 +47,8 @@ public class EyeAll extends Subsystem
     
     public boolean IsOpen = false;
     
-    public enum TargetOjbect
+    public enum TargetObject
     {
-        YELLOW_POLE_HIGH,
-        YELLOW_POLE_LOW,
         RED_CONE,
         BLUE_CONE,
         BLACK_DISK,
@@ -105,7 +103,7 @@ public class EyeAll extends Subsystem
             stop();
         }
     
-        pipeline_find = new DetectionPipeline();
+        propsDetectionPipeline = new PropsDetectionPipeline();
         aprilTagDetectionPipeline = new AprilTagDetectionPipeline(tagsize, fx, fy, cx, cy);
     
     }
@@ -156,7 +154,7 @@ public class EyeAll extends Subsystem
         return null;
     }
     
-    public void OpenEyeToRead()
+    public void OpenEyeToReadAprilTag()
     {
         if(IsOpen)
             return;
@@ -183,12 +181,12 @@ public class EyeAll extends Subsystem
         });
     }
     
-    public void OpenEyeToFind()
+    public void OpenEyeToFindProps()
     {
         if(IsOpen)
             return;
         
-        webcam.setPipeline(pipeline_find);
+        webcam.setPipeline(propsDetectionPipeline);
         
         // Timeout for obtaining permission is configurable. Set before opening.
         webcam.setMillisecondsPermissionTimeout(2500);
@@ -241,7 +239,7 @@ public class EyeAll extends Subsystem
     
     public static class AnalyzedObject
     {
-        public TargetOjbect name = TargetOjbect.NONE;
+        public TargetObject name = TargetObject.NONE;
         public double angle_avg = -90;
         public int center_x_avg = -1;
         public int center_y_avg = -1;
@@ -260,7 +258,7 @@ public class EyeAll extends Subsystem
     
     public void SetOpInfoOnScreen(String mode)
     {
-        pipeline_find.SetStatusInfo(mode);
+        propsDetectionPipeline.SetStatusInfo(mode);
     }
     
     static final double FEET_PER_METER = 3.28084;
@@ -343,7 +341,7 @@ public class EyeAll extends Subsystem
         }
     }
     
-    public ObjectLocation CheckObjectLocation(TargetOjbect newtarget)
+    public ObjectLocation CheckObjectLocation(TargetObject newtarget)
     {
         ObjectLocation result = ObjectLocation.UNKNOWN;
         
@@ -352,19 +350,32 @@ public class EyeAll extends Subsystem
             objectFoundInfo.name = newtarget;
         }
         
-        if(newtarget == TargetOjbect.RED_CONE || newtarget == TargetOjbect.BLUE_CONE)
+        if(newtarget == TargetObject.RED_CONE || newtarget == TargetObject.BLUE_CONE)
         {
             result = CheckConeOnCenterLoop();
         }
-        else if(newtarget == TargetOjbect.YELLOW_POLE_HIGH)
-        {
-            result = CheckMidHighPoleOnCenterLoop();
-        }
-        else if(newtarget == TargetOjbect.YELLOW_POLE_LOW)
-        {
-            result = CheckLowPoleOnCenterLoop();
-        }
         
+        return result;
+    }
+
+    public ObjectLocation CheckPropsLocation(TargetObject newtarget)
+    {
+        ObjectLocation result = ObjectLocation.UNKNOWN;
+
+        if(objectFoundInfo.name != newtarget)
+        {
+            objectFoundInfo.name = newtarget;
+        }
+
+        if(newtarget == TargetObject.RED_CONE )  //newtarget == TargetObject.BLUE_CONE
+        {
+            result = CheckPropsLocationLoop();
+        }
+        else // to be fixed, testing only
+        {
+            result = ObjectLocation.ON_CAMERA_LEFT;
+        }
+
         return result;
     }
     
@@ -400,119 +411,14 @@ public class EyeAll extends Subsystem
             objectFoundInfo.center_x[i] = 0;
         }
     }
-    
-    
-    
-    boolean doneInitPole = false;
-    private ObjectLocation CheckMidHighPoleOnCenterLoop()
-    {
-        if(!doneInitPole)
-        {
-            doneInitPole = true;
-            resetCount();
-        }
-        countTotalLR++;
 
-        int centero = Util.inBoundary(objectFoundInfo.center_x_avg,
-                cameraConfig.PolePointAX, cameraConfig.PolePointBX);
-        if( centero == 0)
-        {
-            countCenterLR++;
-        }
-        else if(centero== -1 )
-        {
-            countLEFT++;
-        }
-        else
-        {
-            countRIGHT++;
-        }
-    
-        if(countTotalLR < RETRY_MAX)
-        {
-            objectFoundInfo.lrPosition = ObjectLocation.WAITING;
-        }
-        else
-        {
-            if (countCenterLR >= countTotalLR * 0.6)
-            {
-                objectFoundInfo.lrPosition = ObjectLocation.CENTER;
-            }
-            else
-            {
-                if(countRIGHT > countLEFT)
-                {
-                    objectFoundInfo.lrPosition = ObjectLocation.ON_CAMERA_RIGHT;
-                }
-                else
-                {
-                    objectFoundInfo.lrPosition = ObjectLocation.ON_CAMERA_LEFT;
-                }
-            }
-            countTotalLR = 0;
-            countCenterLR = 0;
-            countRIGHT = 0;
-            countLEFT = 0;
-        }
-
-        countTotalFB++;
-        int widthp = Util.inBoundary(objectFoundInfo.width_avg,
-                cameraConfig.PoleWidth, cameraConfig.PoleWidth*1.3);
-        if( 0 == widthp)
-        {
-            countCenterFB++;
-        }
-        else if( -1 == widthp) //0-4
-        {
-            countFRONT++;
-        }
-        else
-        {
-            countBACK++;
-        }
-    
-        if(countTotalFB < RETRY_MAX)
-        {
-            objectFoundInfo.fbPosition = ObjectLocation.WAITING;
-        }
-        else
-        {
-            if (countCenterFB >= countTotalFB * 0.6)
-            {
-                //resetCount();
-                objectFoundInfo.fbPosition = ObjectLocation.CENTER;
-            }
-            else
-            {
-                if(countBACK > countFRONT)
-                {
-                    //resetCount();
-                    objectFoundInfo.fbPosition = ObjectLocation.NEAR_TO_CAMERA;
-                }
-                else
-                {
-                    //resetCount();
-                    objectFoundInfo.fbPosition = ObjectLocation.FAR_TO_CAMERA;
-                }
-            }
-            countTotalFB = 0;
-            countCenterFB = 0;
-            countBACK = 0;
-            countFRONT = 0;
-        }
-        if(objectFoundInfo.lrPosition != ObjectLocation.CENTER )
-            return objectFoundInfo.lrPosition;
-        else
-        {
-            return  objectFoundInfo.fbPosition;
-        }
-    }
-    
-    private ObjectLocation CheckLowPoleOnCenterLoop()
+    private ObjectLocation CheckPropsLocationLoop()
     {
-            return ObjectLocation.WAITING;
+        // To be done::
+        return ObjectLocation.CENTER;
     }
-    
+
+
     boolean doneInitCone = false;
     private ObjectLocation CheckConeOnCenterLoop()
     {
@@ -617,7 +523,7 @@ public class EyeAll extends Subsystem
     }
     
     
-    public static class DetectionPipeline extends TimestampedOpenCvPipeline //OpenCvPipeline
+    public static class PropsDetectionPipeline extends TimestampedOpenCvPipeline //OpenCvPipeline
     {
         static final Scalar TEAL = new Scalar(3, 148, 252);
         static final Scalar PURPLE = new Scalar(158, 52, 235);
@@ -629,7 +535,6 @@ public class EyeAll extends Subsystem
         //Point stageTextAnchor;
         //Point timeTextAnchor;
         Point coneConfigTextAnchor;
-        Point poleConfigTextAnchor;
         Point configStateTextAnchor;
         
         /*
@@ -699,9 +604,7 @@ public class EyeAll extends Subsystem
     
         Point targetConePointA;
         Point targetConePointB;
-    
-        Point targetPolePointA;
-        Point targetPolePointB;
+
         
         Point locationTextAnchorLRPoint;
         Point locationTextAnchorFBPoint;
@@ -721,16 +624,9 @@ public class EyeAll extends Subsystem
             targetConePointB = new Point(
                     cameraConfig.ConePointBX,
                     cameraConfig.ConePointBY);
-            targetPolePointA = new Point(
-                    cameraConfig.PolePointAX,
-                    cameraConfig.PolePointAY);
-            targetPolePointB = new Point(
-                    cameraConfig.PolePointBX,
-                    cameraConfig.PolePointBY);
             //timeTextAnchor = new Point(0, 15);
             //stageTextAnchor = new Point(540, mat.height()-10);
             coneConfigTextAnchor = new Point(0, 30);
-            poleConfigTextAnchor = new Point(0, 45);
             configStateTextAnchor = new Point(400, mat.height()-15);
             locationTextAnchorLRPoint = new Point(0, 150);
             locationTextAnchorFBPoint = new Point(0, 165);
@@ -774,62 +670,9 @@ public class EyeAll extends Subsystem
                 runtime.reset();
             }
     
-            if(objectFoundInfo.name == TargetOjbect.NONE)
+            if(objectFoundInfo.name == TargetObject.NONE)
             {
                 return input;
-            }
-            else if(objectFoundInfo.name == TargetOjbect.YELLOW_POLE_HIGH)
-            {
-                for(MatOfPoint contour : findContoursPole(input))
-                {
-                    analyzeContour(contour, input);
-                }
-                
-                /*
-            // "Mat" stands for matrix, which is basically the image that the detector will process
-            // the input matrix is the image coming from the camera
-            // the function will return a matrix to be drawn on your phone's screen
-            
-            // The detector detects regular stones. The camera fits two stones.
-            // If it finds one regular stone then the other must be the Pole.
-            // If both are regular stones, it returns NONE to tell the robot to keep looking
-            
-            // Make a working copy of the input matrix in HSV
-            Imgproc.cvtColor(input, hSVChanMat, Imgproc.COLOR_RGB2HSV);
-            
-            // if something is wrong, we assume there's no Pole
-            if (hSVChanMat.empty()) {
-                location_leftright = 100;
-                return input;
-            }
-            
-            // We create a HSV range for yellow to detect regular stones
-            // NOTE: In OpenCV's implementation,
-            // Hue values are half the real value
-            Scalar lowHSV = new Scalar(11.8, 161.7, 116.5);
-            // lower bound HSV for yellow 20,100,100
-            Scalar highHSV = new Scalar(30.3, 255.0, 255.0);
-            // higher bound HSV for yellow 30,255,255
-            
-            // We'll get a black and white image. The white regions represent the regular stones.
-            // inRange(): thresh[i][j] = {255,255,255} if mat[i][i] is within the range
-            Core.inRange(hSVChanMat, lowHSV, highHSV, thresholdMat);
-            //Imgproc.threshold(hSVChanMat, thresholdMat, CB_CHAN_MASK_THRESHOLD,
-            255, Imgproc.THRESH_BINARY);
-    */
-            
-            /*MatOfPoint2f[] contoursPoly  = new MatOfPoint2f[contoursList.size()];
-            Rect[] boundRect = new Rect[contoursList.size()];
-            for (int i = 0; i < contoursList.size(); i++) {
-                contoursPoly[i] = new MatOfPoint2f();
-                Imgproc.approxPolyDP(new MatOfPoint2f(contoursList.get(i).toArray()),
-                contoursPoly[i], 3, true);
-                boundRect[i] = Imgproc.boundingRect(new MatOfPoint(contoursPoly[i].toArray()));
-            }*/
-    
-                // Iterate and check whether the bounding boxes
-                // cover left and/or right side of the image
-                
             }
             else //(currentFinding == TargetOjbect.CONE)
             {
@@ -901,33 +744,7 @@ public class EyeAll extends Subsystem
                     0.7, // Font size
                     GREEN, // Font color
                     1);
-            
-    
-            targetPolePointA = new Point(
-                    cameraConfig.PolePointAX,
-                    cameraConfig.PolePointAY);
-            targetPolePointB = new Point(
-                    cameraConfig.PolePointBX,
-                    cameraConfig.PolePointBY);
-            Imgproc.rectangle(
-                    input, // Buffer to draw on
-                    targetPolePointA, // First point which defines the rectangle
-                    targetPolePointB, // Second point which defines the rectangle
-                    YELLOW, // The color the rectangle is drawn in
-                    2); // Thickness of the rectangle lines
-    
-            lb = String.format("A(%d,%d)", cameraConfig.PolePointAX, cameraConfig.PolePointAY);
-            Imgproc.putText(input, lb,
-                    targetPolePointA, Imgproc.FONT_HERSHEY_PLAIN, // Font
-                    0.7, // Font size
-                    GREEN, // Font color
-                    1);
-            lb = String.format("B(%d,%d)", cameraConfig.PolePointBX, cameraConfig.PolePointBY);
-            Imgproc.putText(input, lb,
-                    targetPolePointB, Imgproc.FONT_HERSHEY_PLAIN, // Font
-                    0.7, // Font size
-                    GREEN, // Font color
-                    1);
+
     
             lb = String.format("Cone Target - Width: %d-%d, Red Color: %d, Blue Color: %d",
                     cameraConfig.ConeWidth, (int)(cameraConfig.ConeWidth*1.2),
@@ -938,15 +755,7 @@ public class EyeAll extends Subsystem
                     1, // Font size
                     PURPLE, // Font color
                     1);
-    
-            lb = String.format("Pole Target - Width: %d-%d, Yellow Color: %d",
-                    cameraConfig.PoleWidth, (int)(cameraConfig.PoleWidth*1.3), cameraConfig.Yellow);
-            Imgproc.putText(input, lb,
-                    poleConfigTextAnchor,
-                    Imgproc.FONT_HERSHEY_PLAIN, // Font
-                    1, // Font size
-                    YELLOW, // Font color
-                    1);
+
     
             lb = String.format("Task: " + KeypadAdjTask);
             Imgproc.putText(input, lb,
@@ -1021,7 +830,7 @@ public class EyeAll extends Subsystem
     
             // Threshold the Cb channel to form a mask, then run some noise reduction
             //if (RobotAutonomousDrive.allianceConfig.Alliance == AllianceConfig.RED)
-            if(objectFoundInfo.name == TargetOjbect.RED_CONE)
+            if(objectFoundInfo.name == TargetObject.RED_CONE)
             {
                 Core.extractChannel(yCbCrChanMat, yCbCrChanMat, 1);
                 
@@ -1072,58 +881,7 @@ public class EyeAll extends Subsystem
     
             return outputContours;
         }
-    
-        Mat erodeElementPole = Imgproc.getStructuringElement(Imgproc.MORPH_RECT,
-                new Size(1,1));//(3, 3));
-        Mat dilateElementPole = Imgproc.getStructuringElement(Imgproc.MORPH_RECT,
-                new Size(3, 3));
-        // THESE NEED TO BE TUNED BASED ON YOUR DISTANCE FROM THE POLE
-        private final double minContourArea = 500.0;
-        private final double minContourPerimeter = 100.0;
-        private final double minContourWidth = 40.0;
-        private final double minContourHeight = 80.0;
-        private List<MatOfPoint> findContoursPole(Mat input)
-        {
-            Imgproc.cvtColor(input, yCbCrChanMat, Imgproc.COLOR_RGB2YCrCb);
-            Core.extractChannel(yCbCrChanMat, yCbCrChanMat, 2);
-            
-            //CB_CHAN_MASK_THRESHOLD: 80
-            Imgproc.threshold(yCbCrChanMat, thresholdMat, cameraConfig.Yellow,
-                    255, Imgproc.THRESH_BINARY_INV);
-    
-            Imgproc.erode(thresholdMat, morphedThreshold, erodeElementPole);
-            Imgproc.erode(morphedThreshold, morphedThreshold, erodeElementPole);
-    
-            Imgproc.dilate(morphedThreshold, morphedThreshold, dilateElementPole);
-            Imgproc.dilate(morphedThreshold, morphedThreshold, dilateElementPole);
-            // Use Canny Edge Detection to find edges
-            // you might have to tune the thresholds for hysteresis
-            //Imgproc.Canny(morphedThreshold, edgesMat, 100, 300);
-    
-            // https://docs.opencv.org/3.4/da/d0c/tutorial_bounding_rects_circles.html
-            // Oftentimes the edges are disconnected. findContours connects these edges.
-            // We then find the bounding rectangles of those contours
-            List<MatOfPoint> contoursList = new ArrayList<>();
-    
-            //Imgproc.findContours(edgesMat, contours, new Mat(),
-            // Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE);
-            Imgproc.findContours(morphedThreshold, contoursList, new Mat(),
-                    Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
-            numContoursFound = contoursList.size();
-    
-            // remove noisy contours
-            List<MatOfPoint> outputContours = new ArrayList<>();
-            filterContours(contoursList,outputContours,
-                    minContourArea, minContourPerimeter, minContourWidth, minContourHeight);
-            //https://github.com/Epsilon10/SKYSTONE-CV/blob/19fc8b43450bd660614f579c4a368f628d192def/VisionPipeline.java#L150
-    
-            // We do draw the contours we find, but not to the main input buffer.
-            input.copyTo(contoursOnPlainImageMat);
-            Imgproc.drawContours(contoursOnPlainImageMat, outputContours, -1,
-                    BLUE, CONTOUR_LINE_THICKNESS, 8);
-            
-            return outputContours;
-        }
+
     
         //private int minX, minY = Integer.MAX_VALUE;
         //private int maxX, maxY = -1 * Integer.MAX_VALUE;

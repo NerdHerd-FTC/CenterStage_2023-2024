@@ -31,8 +31,6 @@ package org.firstinspires.ftc.teamcode;
 
 import static com.qualcomm.hardware.rev.RevHubOrientationOnRobot.xyzOrientation;
 
-import static org.firstinspires.ftc.teamcode.BuildConfig.*;
-
 import android.util.Log;
 
 //import com.qualcomm.hardware.bosch.BNO055IMU;
@@ -45,11 +43,9 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Gamepad;
-import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
-import org.firstinspires.ftc.robotcore.external.Func;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 //import org.firstinspires.ftc.teamcode.core.subsystems.Eye;
@@ -57,10 +53,8 @@ import org.firstinspires.ftc.teamcode.core.subsystems.EyeAll;
 import org.firstinspires.ftc.teamcode.util.AllianceConfig;
 import org.firstinspires.ftc.teamcode.util.Constants;
 import org.firstinspires.ftc.teamcode.util.PID;
-import org.firstinspires.ftc.teamcode.util.Util;
 
 import java.util.Locale;
-import java.util.Objects;
 
 /**
  *  This file illustrates the concept of driving an autonomous path based on Gyro heading and encoder counts.
@@ -122,7 +116,7 @@ public class RobotAutonomousDrive extends OpMode
     //private BNO055IMU imu;
     private IMU imu         = null;      // Control/Expansion Hub IMU
     
-    //EyeAll eye;
+    EyeAll eye;
 
     private double          robotHeading  = 0;
     private double          headingOffset = 0;
@@ -171,17 +165,9 @@ public class RobotAutonomousDrive extends OpMode
     public static AllianceConfig.AllianceConfigData allianceConfig =
             new AllianceConfig.AllianceConfigData();
 
-    public enum TeamPropLocation
-    {
-        LEFT,
-        CENTER,
-        RIGHT,
-        NONE
-    }
-
     //Four (4) white Pixels, one (1) for each set of Spike Marks. The Pixels will start centered on
     //top of the center Spike Marks
-    private TeamPropLocation propLocation = TeamPropLocation.CENTER;
+    private EyeAll.ObjectLocation propsLocation = EyeAll.ObjectLocation.UNKNOWN;
 
     
     /**
@@ -192,9 +178,9 @@ public class RobotAutonomousDrive extends OpMode
     {
         autoTimer30Sec.reset();
         
-        //eye = new EyeAll(hardwareMap);
+        eye = new EyeAll(hardwareMap);
         
-        //eye.autoInit();
+        eye.autoInit();
     
         // Initialize the drive system variables.
         frontLeft = hardwareMap.get(DcMotor.class, Constants.leftfrontMotor);
@@ -249,6 +235,7 @@ public class RobotAutonomousDrive extends OpMode
         AllianceConfig.ReadConfigFromFile(allianceConfig);
 
         //eye.OpenEyeToRead();
+        eye.OpenEyeToFindProps();
     }
     
     /*
@@ -271,7 +258,10 @@ public class RobotAutonomousDrive extends OpMode
     @Override
     public void init_loop()
     {
-        //propLocation = eye.ReadPropLocation();
+        if(allianceConfig.Alliance == AllianceConfig.RED)
+            propsLocation = eye.CheckPropsLocation(EyeAll.TargetObject.RED_CONE);
+        else
+            propsLocation = eye.CheckPropsLocation(EyeAll.TargetObject.BLUE_CONE);
     
         TuningHandMotors(gamepad1); // TODO debug
         //lifterMotorRunnable();
@@ -288,8 +278,8 @@ public class RobotAutonomousDrive extends OpMode
         telemetry.addData("Route #: ",
                 allianceConfig.PathRoute);
 
-        telemetry.addData("Prop Location : ",
-                propLocation.toString());
+        telemetry.addData("Props Location : ",
+                propsLocation.toString());
     
         composeTelemetry();
     
@@ -409,36 +399,11 @@ public class RobotAutonomousDrive extends OpMode
     {
         if (currentTaskID == 0)
         {
-            moveA2B_Strafe0 = 27;
-            moveA2B_Straight0 = 25.5;
-            moveB2C_Straight01 = 27.;
-            moveB2C_Straight02 = 42.;
-            moveB2C_Heading02 = -90.0;
-            moveC2D_Straight01 = -39.;
-            moveC2D_Heading01 = -90.;
-            moveD2C_Straight01 = 32.;
-            moveD2C_Heading01 = -90.;
-            //moveD2E_Straight01 = 34.;
-            moveD2E_Heading01 = -90.;
-            //moveC2E_Straight01 = 34.;
-            moveC2E_Heading01 = -90.;
-    
-//            if (Objects.equals(allianceConfig.ParkingZone, "1")) moveD2E_Straight01 = 30;
-//            else if (Objects.equals(allianceConfig.ParkingZone, "2")) moveD2E_Straight01 = 20;
-//            else moveD2E_Straight01 = 0;
-//
-//            if (Objects.equals(allianceConfig.ParkingZone, "1")) moveC2E_Straight01 = -30;
-//            else if (Objects.equals(allianceConfig.ParkingZone, "2")) moveC2E_Straight01 = -20;
-//            else moveC2E_Straight01 = 0;
-            
-    
-            targetPositionArm = 1500;
-            
             setTaskTo(1);
         }
         else if (currentTaskID == 1)
         {
-            if (taskRunTimeout.milliseconds() > 3000)
+            if (taskRunTimeout.milliseconds() > 1000)
             {
                 setTaskTo(2);
             }
@@ -463,7 +428,6 @@ public class RobotAutonomousDrive extends OpMode
         }*/
         else // loopTaskCount =
         {
-            
             setMissionTo(Mission.MOVE_A2B);
         }
     }
@@ -478,15 +442,16 @@ public class RobotAutonomousDrive extends OpMode
         
         if (currentTaskID == 0)
         {
-            if(allianceConfig.PathRoute == "0")
-                moveA2B_Straight0 = 3;
-            else {
-                if ((allianceConfig.Alliance == AllianceConfig.RED && allianceConfig.Location == AllianceConfig.LEFT) ||
-                        (allianceConfig.Alliance == AllianceConfig.BLUE && allianceConfig.Location == AllianceConfig.RIGHT))
-                    moveA2B_Straight0 = 24;
-                else
-                    moveA2B_Straight0 = 12;
-            }
+//            if(allianceConfig.PathRoute == "0")
+//                moveA2B_Straight0 = 3;
+//            else {
+//                if ((allianceConfig.Alliance == AllianceConfig.RED && allianceConfig.Location == AllianceConfig.LEFT) ||
+//                        (allianceConfig.Alliance == AllianceConfig.BLUE && allianceConfig.Location == AllianceConfig.RIGHT))
+//                    moveA2B_Straight0 = 24;
+//                else
+//                    moveA2B_Straight0 = 12;
+//            }
+            moveA2B_Straight0 = 24;
 
             setTaskTo(1);
         }
@@ -507,20 +472,21 @@ public class RobotAutonomousDrive extends OpMode
             //targetPositionArm = 1000; // rising arm up while moving forward
         }
         else if (currentTaskID == 2)
-        {
-            boolean done;
-            if(allianceConfig.Alliance == AllianceConfig.RED )
-                if( allianceConfig.Location == AllianceConfig.RIGHT )
-                    done = driveStrafeLoop(-16, DRIVE_SPEED, 10, 0.0);
-                else
-                    done = driveStrafeLoop(-40, DRIVE_SPEED, 10, 0.0);
-            else if(allianceConfig.Alliance == AllianceConfig.BLUE )
-                if( allianceConfig.Location == AllianceConfig.LEFT)
-                    done = driveStrafeLoop(16, DRIVE_SPEED, 10, 0.0);
-                else
-                    done = driveStrafeLoop(40, DRIVE_SPEED, 10, 0.0);
-            else
-                done = false;
+        {   // red left
+            //boolean done = driveStrafeLoop(8, DRIVE_SPEED, 10, 0.0);
+            boolean done = driveStrafeLoop(40, DRIVE_SPEED, 10, 0.0);;
+//            if(allianceConfig.Alliance == AllianceConfig.RED )
+//                if( allianceConfig.Location == AllianceConfig.RIGHT )
+//                    done = driveStrafeLoop(16, DRIVE_SPEED, 10, 0.0);
+//                else
+//                    done = driveStrafeLoop(40, DRIVE_SPEED, 10, 0.0);
+//            else if(allianceConfig.Alliance == AllianceConfig.BLUE )
+//                if( allianceConfig.Location == AllianceConfig.LEFT)
+//                    done = driveStrafeLoop(-16, DRIVE_SPEED, 10, 0.0);
+//                else
+//                    done = driveStrafeLoop(-40, DRIVE_SPEED, 10, 0.0);
+//            else
+//                done = false;
 
             if (taskRunTimeout.seconds() >= 10)
             {
@@ -668,79 +634,9 @@ public class RobotAutonomousDrive extends OpMode
             }
         }
     }
-    
-    double moveB2C_Straight01;
-    double moveB2C_Straight02;
-    double moveB2C_Heading02;
-    
+
     double extraDistance = 0.;
-    private void moveB2C()
-    {
-        if (currentTaskID == 0)
-        {
-            setTaskTo(2);
-        }
-        else if (currentTaskID == 2)
-        {
-            // point a bit to left
-            boolean done = driveStraightLoop(DRIVE_SPEED,
-                    moveB2C_Straight01 + (extraDistance*0.7), 0);
-            if (taskRunTimeout.seconds() >= 3)
-            {
-                // timeout, bad! should not happen at all
-                resetDriveLoops();
-                setMissionTo(Mission.EXIT);
-            }
-            else if (done)
-            {
-                setTaskTo(3);
-            }
-        }
-        else if(currentTaskID == 3)
-        {
-            boolean done = turnToHeadingLoop(TURN_SPEED, moveB2C_Heading02);
-            if(taskRunTimeout.seconds() >= 5)
-            {
-                // timeout, bad! should not happen at all
-                resetDriveLoops();
-                setMissionTo(Mission.EXIT);
-            }
-            else if( done )
-            {
-                setTaskTo(4);
-            }
-        }
-        else if(currentTaskID == 4)
-        {
-            boolean done = holdHeadingLoop( TURN_SPEED, moveB2C_Heading02, 0.5);
-            if(taskRunTimeout.seconds() >= 2)
-            {
-                // timeout, bad! should not happen at all
-                resetDriveLoops();
-                setMissionTo(Mission.EXIT);
-            }
-            else if( done )
-            {
-                setTaskTo(5);
-            }
-        }
-        else if(currentTaskID == 5)
-        {
-            boolean done = driveStraightLoop(DRIVE_SPEED, moveB2C_Straight02, moveB2C_Heading02);
-            if(taskRunTimeout.seconds() >= 10)
-            {
-                // timeout, bad! should not happen at all
-                resetDriveLoops();
-                setMissionTo(Mission.EXIT);
-            }
-            else if( done )
-            {
-//                setMissionTo(Mission.SPOT_C);
-                extraDistance = 0;
-            }
-        }
-    }
-    
+
     volatile EyeAll.ObjectLocation isConeCenter = EyeAll.ObjectLocation.UNKNOWN;
     // pick up a cone
     private void spotC()
@@ -879,112 +775,8 @@ public class RobotAutonomousDrive extends OpMode
 //            }
         }
     }
-    
-    double moveC2D_Straight01;
-    double moveC2D_Heading01;
-    private void moveC2D()
-    {
-        // Notes:   Reverse movement is obtained by setting a negative distance (not speed)
-        //          holdHeading() is used after turns to let the heading stabilize
-        if(currentTaskID == 0)
-        {
-            setTaskTo(1);
-        }
-        else if(currentTaskID == 1)
-        {
-            boolean done = driveStraightLoop(DRIVE_SPEED, moveC2D_Straight01, moveC2D_Heading01);
-            if(taskRunTimeout.seconds() >= 10)
-            {
-                // timeout, bad! should not happen at all
-                resetDriveLoops();
-                setMissionTo(Mission.EXIT);
-            }
-            else if( done )
-            {
-//                setMissionTo(Mission.SPOT_D);
-            }
-        }
-    }
-    
-    double moveD2C_Straight01;
-    double moveD2C_Heading01;
-    private void moveD2C()
-    {
-        if (currentTaskID == 0)
-        {
-            {
-                setTaskTo(1);
-            }
-        }
-        else if (currentTaskID == 1)
-        {
-            boolean done = driveStraightLoop(
-                    DRIVE_SPEED, moveD2C_Straight01 - extraDistance, moveD2C_Heading01);
-            if (taskRunTimeout.seconds() >= 10)
-            {
-                // timeout, bad! should not happen at all
-                resetDriveLoops();
-                setMissionTo(Mission.EXIT);
-            }
-            else if (done)
-            {
-//                setMissionTo(Mission.SPOT_C);
-            }
-        }
-    }
-    
-    double moveD2E_Straight01;
-    double moveD2E_Heading01;
-    private void moveD2E()
-    {
-        // Notes:   Reverse movement is obtained by setting a negative distance (not speed)
-        //          holdHeading() is used after turns to let the heading stabilize
-        if(currentTaskID == 0)
-        {
-            setTaskTo(1);
-        }
-        else if(currentTaskID == 1)
-        {
-            boolean done = driveStraightLoop(DRIVE_SPEED, moveD2E_Straight01, moveD2E_Heading01);
-            if(taskRunTimeout.seconds() >= 10)
-            {
-                // timeout, bad! should not happen at all
-                resetDriveLoops();
-                setMissionTo(Mission.EXIT);
-            }
-            else if( done )
-            {
-//                setMissionTo(Mission.SPOT_C);
-            }
-        }
-    }
-    
-    double moveC2E_Straight01;
-    double moveC2E_Heading01;
-    private void moveC2E()
-    {
-        // Notes:   Reverse movement is obtained by setting a negative distance (not speed)
-        //          holdHeading() is used after turns to let the heading stabilize
-        if(currentTaskID == 0)
-        {
-            setTaskTo(1);
-        }
-        else if(currentTaskID == 1)
-        {
-            boolean done = driveStraightLoop(DRIVE_SPEED, moveC2E_Straight01, moveC2E_Heading01);
-            if(taskRunTimeout.seconds() >= 10)
-            {
-                // timeout, bad! should not happen at all
-                resetDriveLoops();
-                setMissionTo(Mission.EXIT);
-            }
-            else if( done )
-            {
-                setMissionTo(Mission.SPOT_B);
-            }
-        }
-    }
-    
+
+
     int targetPositionLifter;
     int targetPositionArm;
     private final PID armPID = new PID(0.0035,0,0.025,0.1, 0.5, -0.2);
