@@ -367,14 +367,14 @@ public class EyeAll extends Subsystem
             objectFoundInfo.name = newtarget;
         }
 
-        if(newtarget == TargetObject.RED_CONE )  //newtarget == TargetObject.BLUE_CONE
+        if(newtarget == TargetObject.RED_CONE  || newtarget == TargetObject.BLUE_CONE)
         {
             result = CheckPropsLocationLoop();
         }
-        else // to be fixed, testing only
-        {
-            result = ObjectLocation.ON_CAMERA_LEFT;
-        }
+//        else // to be fixed, testing only
+//        {
+//            result = ObjectLocation.ON_CAMERA_LEFT;
+//        }
 
         return result;
     }
@@ -416,7 +416,7 @@ public class EyeAll extends Subsystem
     static final int ConePointBX = 300; // to be calibrated
 
     static final int ConePointAY = 0;
-    static final int ConePointBY = 0;
+    static final int ConePointBY = 360;
     private ObjectLocation CheckPropsLocationLoop()
     {
         if(!doneInitCone)
