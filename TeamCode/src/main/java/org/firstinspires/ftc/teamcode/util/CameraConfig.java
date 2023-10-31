@@ -22,29 +22,18 @@ public class CameraConfig
         public int ConePointAY = 0;
         public int ConePointBX = 0;
         public int ConePointBY = 0;
-    
-        public static final String PolePointAX_Str = "ptax";
-        public static final String PolePointAY_Str = "ptay";
-        public static final String PolePointBX_Str = "ptbx";
-        public static final String PolePointBY_Str = "ptby";
-    
-        public int PolePointAX = 0;
-        public int PolePointAY = 0;
-        public int PolePointBX = 0;
-        public int PolePointBY = 0;
-        
+
         public static final String Red_Str = "red";
         public static final String Blue_Str = "blue";
         public static final String Yellow_Str = "yellow";
         
         public int Red = 180;
         public int Blue = 180;
-        public int Yellow = 80;
     
         public static final String ConeWidth_Str = "cwidth";
-        public static final String PoleWidth_Str = "pwidth";
+
         public int ConeWidth = 250;
-        public int PoleWidth = 150;
+
     
         public static final String PathCenterX_Str = "center";
         public int PathCenterX = Constants.CameraViewWidth/2;
@@ -55,15 +44,9 @@ public class CameraConfig
             this.ConePointAY = source.ConePointAY;
             this.ConePointBX = source.ConePointBX;
             this.ConePointBY = source.ConePointBY;
-            this.PolePointAX = source.PolePointAX;
-            this.PolePointAY = source.PolePointAY;
-            this.PolePointBX = source.PolePointBX;
-            this.PolePointBY = source.PolePointBY;
             this.Red = source.Red;
             this.Blue = source.Blue;
-            this.Yellow = source.Yellow;
             this.ConeWidth = source.ConeWidth;
-            this.PoleWidth = source.PoleWidth;
             this.PathCenterX = source.PathCenterX;
         }
     }
@@ -82,18 +65,18 @@ public class CameraConfig
             InitData.put(CameraConfigData.ConePointAY_Str, newConfig.ConePointAY);
             InitData.put(CameraConfigData.ConePointBX_Str, newConfig.ConePointBX);
             InitData.put(CameraConfigData.ConePointBY_Str, newConfig.ConePointBY);
-    
-            InitData.put(CameraConfigData.PolePointAX_Str, newConfig.PolePointAX);
-            InitData.put(CameraConfigData.PolePointAY_Str, newConfig.PolePointAY);
-            InitData.put(CameraConfigData.PolePointBX_Str, newConfig.PolePointBX);
-            InitData.put(CameraConfigData.PolePointBY_Str, newConfig.PolePointBY);
+//
+//            InitData.put(CameraConfigData.PolePointAX_Str, newConfig.PolePointAX);
+//            InitData.put(CameraConfigData.PolePointAY_Str, newConfig.PolePointAY);
+//            InitData.put(CameraConfigData.PolePointBX_Str, newConfig.PolePointBX);
+//            InitData.put(CameraConfigData.PolePointBY_Str, newConfig.PolePointBY);
     
             InitData.put(CameraConfigData.Red_Str, newConfig.Red);
             InitData.put(CameraConfigData.Blue_Str, newConfig.Blue);
-            InitData.put(CameraConfigData.Yellow_Str, newConfig.Yellow);
+//            InitData.put(CameraConfigData.Yellow_Str, newConfig.Yellow);
             
             InitData.put(CameraConfigData.ConeWidth_Str, newConfig.ConeWidth);
-            InitData.put(CameraConfigData.PoleWidth_Str, newConfig.PoleWidth);
+//            InitData.put(CameraConfigData.PoleWidth_Str, newConfig.PoleWidth);
     
             InitData.put(CameraConfigData.PathCenterX_Str, newConfig.PathCenterX);
             
@@ -102,8 +85,9 @@ public class CameraConfig
             //telemetry.addLine(userString);
             // Define the File Path and its Name
             File directory = new File(directoryPath);
-            if(!directory.mkdir())
-                return null;
+//            if(!directory.mkdir())
+//                return null;
+            directory.mkdir();
             FileWriter fileWriter = new FileWriter(
                     directoryPath + fileName);
             
@@ -118,7 +102,7 @@ public class CameraConfig
     
     public static int[] ReadConfigFromFile(CameraConfigData config)
     {
-        int[] data = new int[14];
+        int[] data = new int[8];
         try
         {
             FileReader fileReader = new FileReader(
@@ -141,31 +125,31 @@ public class CameraConfig
             data[1] = Integer.parseInt(jsonObject.get(CameraConfigData.ConePointAY_Str).toString());
             data[2] = Integer.parseInt(jsonObject.get(CameraConfigData.ConePointBX_Str).toString());
             data[3] = Integer.parseInt(jsonObject.get(CameraConfigData.ConePointBY_Str).toString());
-            data[4] = Integer.parseInt(jsonObject.get(CameraConfigData.PolePointAX_Str).toString());
-            data[5] = Integer.parseInt(jsonObject.get(CameraConfigData.PolePointAY_Str).toString());
-            data[6] = Integer.parseInt(jsonObject.get(CameraConfigData.PolePointBX_Str).toString());
-            data[7] = Integer.parseInt(jsonObject.get(CameraConfigData.PolePointBY_Str).toString());
-            data[8] = Integer.parseInt(jsonObject.get(CameraConfigData.Red_Str).toString());
-            data[9] = Integer.parseInt(jsonObject.get(CameraConfigData.Blue_Str).toString());
-            data[10] = Integer.parseInt(jsonObject.get(CameraConfigData.Yellow_Str).toString());
-            data[11] = Integer.parseInt(jsonObject.get(CameraConfigData.ConeWidth_Str).toString());
-            data[12] = Integer.parseInt(jsonObject.get(CameraConfigData.PoleWidth_Str).toString());
-            data[13] = Integer.parseInt(jsonObject.get(CameraConfigData.PathCenterX_Str).toString());
+//            data[4] = Integer.parseInt(jsonObject.get(CameraConfigData.PolePointAX_Str).toString());
+//            data[5] = Integer.parseInt(jsonObject.get(CameraConfigData.PolePointAY_Str).toString());
+//            data[6] = Integer.parseInt(jsonObject.get(CameraConfigData.PolePointBX_Str).toString());
+//            data[7] = Integer.parseInt(jsonObject.get(CameraConfigData.PolePointBY_Str).toString());
+            data[4] = Integer.parseInt(jsonObject.get(CameraConfigData.Red_Str).toString());
+            data[5] = Integer.parseInt(jsonObject.get(CameraConfigData.Blue_Str).toString());
+//            data[10] = Integer.parseInt(jsonObject.get(CameraConfigData.Yellow_Str).toString());
+            data[6] = Integer.parseInt(jsonObject.get(CameraConfigData.ConeWidth_Str).toString());
+//            data[12] = Integer.parseInt(jsonObject.get(CameraConfigData.PoleWidth_Str).toString());
+            data[7] = Integer.parseInt(jsonObject.get(CameraConfigData.PathCenterX_Str).toString());
     
             config.ConePointAX = data[0];
             config.ConePointAY = data[1];
             config.ConePointBX = data[2];
             config.ConePointBY = data[3];
-            config.PolePointAX = data[4];
-            config.PolePointAY = data[5];
-            config.PolePointBX = data[6];
-            config.PolePointBY = data[7];
-            config.Red = data[8];
-            config.Blue = data[9];
-            config.Yellow = data[10];
-            config.ConeWidth = data[11];
-            config.PoleWidth = data[12];
-            config.PathCenterX = data[13];
+//            config.PolePointAX = data[4];
+//            config.PolePointAY = data[5];
+//            config.PolePointBX = data[6];
+//            config.PolePointBY = data[7];
+            config.Red = data[4];
+            config.Blue = data[5];
+//            config.Yellow = data[10];
+            config.ConeWidth = data[6];
+//            config.PoleWidth = data[12];
+            config.PathCenterX = data[7];
             
         } catch (Exception e)
         {

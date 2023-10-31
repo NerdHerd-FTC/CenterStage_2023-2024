@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.teamcode.core.Subsystem;
 //import org.firstinspires.ftc.teamcode.util.CameraConfig;
+import org.firstinspires.ftc.teamcode.util.CameraConfig;
 import org.firstinspires.ftc.teamcode.util.Constants;
 import org.firstinspires.ftc.teamcode.util.Util;
 import org.opencv.calib3d.Calib3d;
@@ -43,7 +44,7 @@ public class EyeAll extends Subsystem
     private AprilTagDetectionPipeline aprilTagDetectionPipeline;
     private HardwareMap hardwareMap;
     
-    //public static CameraConfig.CameraConfigData cameraConfig = new CameraConfig.CameraConfigData();
+    public static CameraConfig.CameraConfigData cameraConfig = new CameraConfig.CameraConfigData();
     
     public boolean IsOpen = false;
     
@@ -97,11 +98,11 @@ public class EyeAll extends Subsystem
         webcam = OpenCvCameraFactory.getInstance().createWebcam(
                 hardwareMap.get(WebcamName.class, Constants.frontWebcamera), cameraMonitorViewId);
     
-//        if( null == CameraConfig.ReadConfigFromFile(cameraConfig))
-//        {
-//            // do the camera calibration first
-//            stop();
-//        }
+        if( null == CameraConfig.ReadConfigFromFile(cameraConfig))
+        {
+            // do the camera calibration first
+            stop();
+        }
     
         propsDetectionPipeline = new PropsDetectionPipeline();
         aprilTagDetectionPipeline = new AprilTagDetectionPipeline(tagsize, fx, fy, cx, cy);
@@ -219,10 +220,10 @@ public class EyeAll extends Subsystem
     }
     
     // backdoor to pock the data into system
-//    public void UpdateConfigDataLoop(CameraConfig.CameraConfigData config)
-//    {
-//        cameraConfig.Copy(config);
-//    }
+    public void UpdateConfigDataLoop(CameraConfig.CameraConfigData config)
+    {
+        cameraConfig.Copy(config);
+    }
     
     public enum ObjectLocation
     {
@@ -411,12 +412,6 @@ public class EyeAll extends Subsystem
             objectFoundInfo.center_x[i] = 0;
         }
     }
-
-    static final int ConePointAX = 100; // to be calibrated
-    static final int ConePointBX = 300; // to be calibrated
-
-    static final int ConePointAY = 0;
-    static final int ConePointBY = 360;
     private ObjectLocation CheckPropsLocationLoop()
     {
         if(!doneInitCone)
@@ -427,7 +422,7 @@ public class EyeAll extends Subsystem
         countTotalLR++;
 
         int centero = Util.inBoundary(objectFoundInfo.center_x_avg,
-                ConePointAX, ConePointBX);
+                cameraConfig.ConePointAX, cameraConfig.ConePointBX);
         if( centero == 0)
         {
             countCenterLR++;
@@ -671,11 +666,11 @@ public class EyeAll extends Subsystem
         public void init(Mat mat)
         {
             targetConePointA = new Point(
-                    ConePointAX,
-                    ConePointAY);
+                    cameraConfig.ConePointAX,
+                    cameraConfig.ConePointAY);
             targetConePointB = new Point(
-                    ConePointBX,
-                    ConePointBY);
+                    cameraConfig.ConePointBX,
+                    cameraConfig.ConePointBY);
             //timeTextAnchor = new Point(0, 15);
             //stageTextAnchor = new Point(540, mat.height()-10);
             coneConfigTextAnchor = new Point(0, 30);
@@ -772,11 +767,11 @@ public class EyeAll extends Subsystem
         private void DisplayInfo(Mat input)
         {
             targetConePointA = new Point(
-                    ConePointAX,
-                    ConePointAY);
+                    cameraConfig.ConePointAX,
+                    cameraConfig.ConePointAY);
             targetConePointB = new Point(
-                    ConePointBX,
-                    ConePointBY);
+                    cameraConfig.ConePointBX,
+                    cameraConfig.ConePointBY);
             Imgproc.rectangle(
                     input, // Buffer to draw on
                     targetConePointA, // First point which defines the rectangle
@@ -784,13 +779,13 @@ public class EyeAll extends Subsystem
                     PURPLE, // The color the rectangle is drawn in
                     2); // Thickness of the rectangle lines
     
-            String lb = String.format("A(%d,%d)", ConePointAX, ConePointAY);
+            String lb = String.format("A(%d,%d)", cameraConfig.ConePointAX, cameraConfig.ConePointAY);
             Imgproc.putText(input, lb,
                     targetConePointA, Imgproc.FONT_HERSHEY_PLAIN, // Font
                     0.7, // Font size
                     GREEN, // Font color
                     1);
-            lb = String.format("B(%d,%d)", ConePointBX, ConePointBY);
+            lb = String.format("B(%d,%d)", cameraConfig.ConePointBX, cameraConfig.ConePointBY);
             Imgproc.putText(input, lb,
                     targetConePointB, Imgproc.FONT_HERSHEY_PLAIN, // Font
                     0.7, // Font size
@@ -886,9 +881,9 @@ public class EyeAll extends Subsystem
             {
                 Core.extractChannel(yCbCrChanMat, yCbCrChanMat, 1);
                 
-                final int CB_CHAN_MASK_THRESHOLD_RED = 180; //cameraConfig.Red
+                final int CB_CHAN_MASK_THRESHOLD_RED = 180; //
                 Imgproc.threshold(yCbCrChanMat, thresholdMat,
-                        CB_CHAN_MASK_THRESHOLD_RED, 255, Imgproc.THRESH_BINARY);
+                        cameraConfig.Red, 255, Imgproc.THRESH_BINARY);
     
                 /*
                  * Apply some erosion and dilation for noise reduction
@@ -903,9 +898,9 @@ public class EyeAll extends Subsystem
             {
                 Core.extractChannel(yCbCrChanMat, yCbCrChanMat, 2);
                 
-                final int CB_CHAN_MASK_THRESHOLD_BLUE = 160; // cameraConfig.Blue
+                final int CB_CHAN_MASK_THRESHOLD_BLUE = 160; //
                 Imgproc.threshold(yCbCrChanMat, thresholdMat,
-                        CB_CHAN_MASK_THRESHOLD_BLUE, 255, Imgproc.THRESH_BINARY);
+                        cameraConfig.Blue, 255, Imgproc.THRESH_BINARY);
     
                 Imgproc.erode(thresholdMat, morphedThreshold, erodeElementBlue);
                 Imgproc.erode(morphedThreshold, morphedThreshold, erodeElementBlue);

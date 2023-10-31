@@ -263,7 +263,7 @@ public class RobotAutonomousDrive extends OpMode
     public void init_loop()
     {
         if(eye!= null) {
-            if (allianceConfig.Alliance == AllianceConfig.RED)
+            if (allianceConfig.Alliance.equals(AllianceConfig.RED))
                 propsLocation = eye.CheckPropsLocation(EyeAll.TargetObject.RED_CONE);
             else
                 propsLocation = eye.CheckPropsLocation(EyeAll.TargetObject.BLUE_CONE);
