@@ -871,9 +871,12 @@ public class EyeAll extends Subsystem
         {
             ArrayList<MatOfPoint> contoursList = new ArrayList<>();
             //contoursList.clear(); // better to new it?
-    
+
             // Convert the input image to YCrCb color space, then extract the Cb channel
-            Imgproc.cvtColor(input, yCbCrChanMat, Imgproc.COLOR_RGB2YCrCb);
+
+            Imgproc.cvtColor(input.submat(new Rect(new Point(0, cameraConfig.ConePointAY),
+                    new Point(Constants.CameraViewWidth, cameraConfig.ConePointBY))),
+                    yCbCrChanMat, Imgproc.COLOR_RGB2YCrCb);
     
             // Threshold the Cb channel to form a mask, then run some noise reduction
             //if (RobotAutonomousDrive.allianceConfig.Alliance == AllianceConfig.RED)
@@ -989,7 +992,9 @@ public class EyeAll extends Subsystem
     
             // Do a rect fit to the contour, and draw it on the screen
             RotatedRect rotatedRectFitToContour = Imgproc.minAreaRect(contour2f);
-            drawRotatedRect(rotatedRectFitToContour, input);
+            drawRotatedRect(rotatedRectFitToContour,
+                    input.submat(new Rect(new Point(0, cameraConfig.ConePointAY),
+                    new Point(Constants.CameraViewWidth, cameraConfig.ConePointBY))));
     
             objectFoundInfo.angle_avg = rotatedRectFitToContour.angle;
             objectFoundInfo.center_x_avg = (int)rotatedRectFitToContour.center.x;
