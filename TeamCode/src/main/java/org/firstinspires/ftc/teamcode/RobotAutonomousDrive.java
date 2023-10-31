@@ -448,15 +448,74 @@ public class RobotAutonomousDrive extends OpMode
         
         if (currentTaskID == 0)
         {
-//            if(allianceConfig.PathRoute == "0")
-//                moveA2B_Straight0 = 3;
-//            else {
-//                if ((allianceConfig.Alliance == AllianceConfig.RED && allianceConfig.Location == AllianceConfig.LEFT) ||
-//                        (allianceConfig.Alliance == AllianceConfig.BLUE && allianceConfig.Location == AllianceConfig.RIGHT))
-//                    moveA2B_Straight0 = 24;
-//                else
-//                    moveA2B_Straight0 = 12;
-//            }
+            if (allianceConfig.Alliance.equals(AllianceConfig.RED) )
+            {
+                    if(allianceConfig.Location.equals(AllianceConfig.LEFT) )
+                    {
+                        if( propsLocation == EyeAll.ObjectLocation.ON_CAMERA_LEFT)
+                        {
+
+                        }
+                        else if( propsLocation == EyeAll.ObjectLocation.ON_CAMERA_RIGHT)
+                        {
+
+                        }
+                        else
+                        {
+
+                        }
+                    }
+                    else //if (allianceConfig.Location.equals(AllianceConfig.RIGHT) ) RED
+                    {
+                        if( propsLocation == EyeAll.ObjectLocation.ON_CAMERA_LEFT)
+                        {
+
+                        }
+                        else if( propsLocation == EyeAll.ObjectLocation.ON_CAMERA_RIGHT)
+                        {
+
+                        }
+                        else
+                        {
+
+                        }
+                    }
+            }
+            else //if (allianceConfig.Alliance.equals(AllianceConfig.BLUE) )
+            {
+                if(allianceConfig.Location.equals(AllianceConfig.LEFT) )
+                {
+                    if( propsLocation == EyeAll.ObjectLocation.ON_CAMERA_LEFT)
+                    {
+
+                    }
+                    else if( propsLocation == EyeAll.ObjectLocation.ON_CAMERA_RIGHT)
+                    {
+
+                    }
+                    else
+                    {
+
+                    }
+                }
+                else //if (allianceConfig.Location.equals(AllianceConfig.RIGHT) ) BLUE
+                {
+                    if( propsLocation == EyeAll.ObjectLocation.ON_CAMERA_LEFT)
+                    {
+
+                    }
+                    else if( propsLocation == EyeAll.ObjectLocation.ON_CAMERA_RIGHT)
+                    {
+
+                    }
+                    else
+                    {
+
+                    }
+                }
+
+            }
+
             moveA2B_Straight0 = 24;
 
             setTaskTo(1);
