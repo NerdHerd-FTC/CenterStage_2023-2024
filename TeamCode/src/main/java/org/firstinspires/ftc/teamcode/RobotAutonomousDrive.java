@@ -167,7 +167,7 @@ public class RobotAutonomousDrive extends OpMode
 
     //Four (4) white Pixels, one (1) for each set of Spike Marks. The Pixels will start centered on
     //top of the center Spike Marks
-    private EyeAll.ObjectLocation propsLocation = EyeAll.ObjectLocation.UNKNOWN;
+    private EyeAll.ObjectLocation propsLocation = EyeAll.ObjectLocation.CENTER;
 
     
     /**
@@ -258,7 +258,7 @@ public class RobotAutonomousDrive extends OpMode
     int ZONE_3 = 123;
     
     //int AprilTagDetectionId = -1;
-    
+
     @Override
     public void init_loop()
     {
@@ -269,7 +269,7 @@ public class RobotAutonomousDrive extends OpMode
                 propsLocation = eye.CheckPropsLocation(EyeAll.TargetObject.BLUE_CONE);
         }
 
-        TuningHandMotors(gamepad1); // TODO debug
+        //TuningHandMotors(gamepad1); // TODO debug
         //lifterMotorRunnable();
         //rotatorMotorRunnable();
         //armMotorRunnable();
@@ -283,15 +283,12 @@ public class RobotAutonomousDrive extends OpMode
                 allianceConfig.Location);
         telemetry.addData("Route #: ",
                 allianceConfig.PathRoute);
-
-        telemetry.addData("Props Location : ",
-                propsLocation.toString());
     
         composeTelemetry();
     
         telemetry.update();
     }
-    
+
     /*
      * Code to run ONCE when the driver hits PLAY
      */
@@ -386,30 +383,30 @@ public class RobotAutonomousDrive extends OpMode
                     {
                         if( propsLocation == EyeAll.ObjectLocation.ON_CAMERA_LEFT)
                         {
-
+                            RedRight_Left();
                         }
                         else if( propsLocation == EyeAll.ObjectLocation.ON_CAMERA_RIGHT)
                         {
-
+                            RedRight_Left();
                         }
                         else
                         {
-
+                            RedRight_Left();
                         }
                     }
                     else //if (allianceConfig.Location.equals(AllianceConfig.RIGHT) ) BLUE
                     {
                         if( propsLocation == EyeAll.ObjectLocation.ON_CAMERA_LEFT)
                         {
-
+                            RedRight_Left();
                         }
                         else if( propsLocation == EyeAll.ObjectLocation.ON_CAMERA_RIGHT)
                         {
-
+                            RedRight_Left();
                         }
                         else
                         {
-
+                            RedRight_Left();
                         }
                     }
 
@@ -471,17 +468,35 @@ public class RobotAutonomousDrive extends OpMode
     {
         if (currentTaskID == 0)
         {
-            setTaskTo(1);
-        }
-        else if (currentTaskID == 1)
-        {
-            if (taskRunTimeout.milliseconds() > 1000)
+            if(eye!= null) {
+                if(propsLocation != EyeAll.ObjectLocation.ON_CAMERA_LEFT &&
+                        propsLocation != EyeAll.ObjectLocation.ON_CAMERA_RIGHT &&
+                        propsLocation != EyeAll.ObjectLocation.CENTER) {
+                    if (allianceConfig.Alliance.equals(AllianceConfig.RED))
+                        propsLocation = eye.CheckPropsLocation(EyeAll.TargetObject.RED_CONE);
+                    else
+                        propsLocation = eye.CheckPropsLocation(EyeAll.TargetObject.BLUE_CONE);
+                }
+            }
+
+            //if (taskRunTimeout.milliseconds() > 2000)
+            if(propsLocation == EyeAll.ObjectLocation.ON_CAMERA_LEFT ||
+            propsLocation == EyeAll.ObjectLocation.ON_CAMERA_RIGHT ||
+            propsLocation == EyeAll.ObjectLocation.CENTER)
+                setMissionTo(Mission.MOVE_A2B);
+            else if (taskRunTimeout.seconds() > 2)
             {
-                setTaskTo(2);
+                // timeout, camera problems...
+                setMissionTo(Mission.MOVE_A2B);
             }
         }
         else
         {
+            if(eye != null) {
+                eye.CloseEye();
+                eye.stop();
+            }
+
             setMissionTo(Mission.MOVE_A2B);
         }
     }
@@ -1004,256 +1019,10 @@ public class RobotAutonomousDrive extends OpMode
         }
     }
 
-
-    int error_lr;
-    int error_fn;
-    double chassisMoveDistance = 0.;
     private void spotB(int rotatorP, boolean isD)
     {
-        if(currentTaskID == 0)
-        {
-
-            targetPositionArm = 2500;//PredefinedPosition.Drop_X_3.ArmMotor;//Constants.ARM_SPOT_B; //
-            //if(allianceConfig.Location == AllianceConfig.LEFT)
-
-            extraDistance = 0;
-
-            //setTaskTo(1);
-            setMissionTo(Mission.EXIT);
-        }
-        else if(currentTaskID == 1)
-        {
-
-            {
-                //wristServo.setPosition(0.4);
-                setTaskTo(2);
-            }
-        }
-        else if(currentTaskID == 2)
-        {
-            targetPositionRotator = rotatorP;
-            //wristServo.setPosition(0.99);//PredefinedPosition.Drop_X_3.WristServo);
-
-            {
-                setTaskTo(3);
-            }
-        }
-        else if( currentTaskID == 3)
-        {
-            if (taskRunTimeout.seconds() < 30) // todo debug
-            {
-                {
-                    setTaskTo(5);
-                /*}
-                else if (isCenterPole == EyeAll.ObjectLocation.FAR_TO_CAMERA)
-                {
-                    error_fn = EyeAll.cameraConfig.PoleWidth - EyeAll.objectFoundInfo.width_avg;
-
-                    chassisMoveDistance = 2;
-                    extraDistance -= 2;
-                    setTaskTo(5);*/
-                }
-                // WAITING, unknown
-                // wait
-            }
-            else // timeout
-            {
-                //something is wrong, just drop it directly
-                // going to drop the cone randomly, good luck
-                setTaskTo(6);
-            }
-        }
-        else if(currentTaskID == 4)
-        {
-            {
-                setTaskTo(3);
-            }
-        }
-        else if(currentTaskID == 5)
-        {
-            boolean done = driveStraightLoop(DRIVE_SPEED,
-                    chassisMoveDistance, 0);
-            if(taskRunTimeout.seconds() >= 2)
-            {
-                // timeout, bad! should not happen at all
-                resetDriveLoops();
-                //setMissionTo(Mission.EXIT);
-                setTaskTo(6);
-            }
-            else if( done )
-            {
-                setTaskTo(3);
-            }
-        }
-        else if(currentTaskID == 6)
-        {
-            if(taskRunTimeout.milliseconds() > 500 )
-            {
-                setTaskTo(7);
-            }
-        }
-        else
-        {
-            //palmServo.setPosition(0.25);
-            //wristServo.setPosition(0.27);
-            if(taskRunTimeout.seconds() > 1 )
-            {
-                autoTimer30Sec.reset();//todo debug
-                // if we still have time, otherwise to B2D
-                if(autoTimer30Sec.seconds() < 20)
-                {
-//                    if(isD)
-//                        setMissionTo(Mission.MOVE_D2C);
-//                    else
-//                        setMissionTo(Mission.MOVE_B2C);
-                }
-                //setMissionTo(Mission.MOVE_B2E);
-
-                targetPositionRotator = 0;
-            }
-        }
     }
 
-    double extraDistance = 0.;
-
-    volatile EyeAll.ObjectLocation isConeCenter = EyeAll.ObjectLocation.UNKNOWN;
-    // pick up a cone
-    private void spotC()
-    {
-        if(currentTaskID == 0)
-        {
-            extraDistance = 0;
-            //if(!Util.inRange(armMotor.getCurrentPosition(), 250, 290))
-            {
-                targetPositionArm = 240;//270(show290);
-                //815 for pickup position;
-            }
-            /*if(!Util.inRange(wristServo.getPosition(), 0.1, 0.2))
-            {
-                wristServo.setPosition(0.15);
-            }*/
-            //wristServo.setPosition(0.15);
-            linkArmWrist = false;
-      
-            if(taskRunTimeout.seconds() > 3)
-            {
-                setTaskTo(1);
-            }
-        }
-        if(currentTaskID == 1)
-        {
-            if (taskRunTimeout.seconds() < 5) // debug: TODO
-            {
-//                if(Objects.equals(allianceConfig.Alliance, AllianceConfig.RED))
-//                    isConeCenter = eye.CheckObjectLocation(EyeAll.TargetOjbect.RED_CONE);
-//                else
-//                    isConeCenter = eye.CheckObjectLocation(EyeAll.TargetOjbect.BLUE_CONE);
-                
-                if (isConeCenter == EyeAll.ObjectLocation.CENTER)
-                {
-                    // found the location, prepare the pickup positions
-                    targetPositionArm = 700;//815;
-                    setTaskTo(4);
-                }
-                else if (isConeCenter == EyeAll.ObjectLocation.ON_CAMERA_LEFT)
-                {
-                    // use mecanum if too far , TODO
-                    targetPositionRotator += 8;
-                    setTaskTo(2);
-                }
-                else if (isConeCenter == EyeAll.ObjectLocation.ON_CAMERA_RIGHT)
-                {
-                    targetPositionRotator -= 8;
-                    setTaskTo(2);
-                }
-                else if (isConeCenter == EyeAll.ObjectLocation.NEAR_TO_CAMERA)
-                {
-                    chassisMoveDistance = -2.5;
-                    extraDistance += 2;
-                    setTaskTo(3);
-                }
-                else if (isConeCenter == EyeAll.ObjectLocation.FAR_TO_CAMERA)
-                {
-                    chassisMoveDistance = 2.5;
-                    extraDistance -= 2;
-                    setTaskTo(3);
-                }
-            }
-            else
-            {
-                // nothing is found, timeout. Go parking
-//                setMissionTo(Mission.MOVE_C2E);
-            }
-        }
-        else if(currentTaskID == 2)
-        {
-            {
-                setTaskTo(1);
-            }
-        }
-        else if(currentTaskID == 3)
-        {
-            boolean done = driveStraightLoop(DRIVE_SPEED,
-                    chassisMoveDistance, 0);
-            if(taskRunTimeout.seconds() >= 20)
-            {
-                // timeout, bad! should not happen at all
-                resetDriveLoops();
-                //setMissionTo(Mission.EXIT);
-                setTaskTo(6);
-            }
-            else if( done )
-            {
-                setTaskTo(1);
-            }
-        }
-        else if(currentTaskID == 4)
-        {
-            if (taskRunTimeout.milliseconds() >= 1100)
-            {
-                setTaskTo(5);
-            }
-        }
-        else if(currentTaskID == 5)
-        {
-            if (taskRunTimeout.milliseconds() >= 500)
-            {
-                setTaskTo(6);
-            }
-        }
-        else if(currentTaskID == 6)
-        {
-            if (taskRunTimeout.milliseconds() >= 50)
-            {
-                setTaskTo(7);
-            }
-        }
-        /*else if(currentTaskID == 7)
-        {
-            boolean done = driveStraightLoop(DRIVE_SPEED,
-                    -5, -90);
-            if (taskRunTimeout.seconds() >= 5 || done)
-            {
-                resetDriveLoops();
-                setTaskTo(8);
-            }
-        }*/
-        else if( currentTaskID == 7)
-        {
-            linkArmWrist = true;
-            
-            // if we still have time, otherwise to parking zone
-            autoTimer30Sec.reset();// todo debug
-//            if(autoTimer30Sec.seconds() < 24)
-//            {
-//                setMissionTo(Mission.MOVE_C2D);
-//            }
-//            else
-//            {
-//                setMissionTo(Mission.MOVE_C2E);
-//            }
-        }
-    }
 
 
     int targetPositionLifter;
@@ -1719,6 +1488,10 @@ public class RobotAutonomousDrive extends OpMode
                         return imu.getCalibrationStatus().toString();
                     }
                 });*/
+
+
+        telemetry.addData("Props Location : ",
+                propsLocation.toString());
     
         telemetry.addLine()
                 .addData("Mission #", currentMission)
@@ -1776,7 +1549,8 @@ public class RobotAutonomousDrive extends OpMode
         String a = String.format(
                 new String(
                         //"Lm(%d : %d : %.2f) Rm(%d : %d : %.2f) Am(%d : %d : %.2f) " +
-                        "IMU(%.2f) DR(%.2f:%.2f:%.2f:%.2f:%.2f:%.2f) Vi(%s:%d; P:%s/C:%s; LR:%d,FN:%d)"),
+                        "IMU(%.2f) DR(%.2f:%.2f:%.2f:%.2f:%.2f:%.2f) Vi(%s:%d)"),
+//P:%s/C:%s; LR:%d,FN:%d
 //                lifterMotor.getCurrentPosition(),
 //                lifterMotor.getTargetPosition(),
 //                lifterMotor.getPower(),
@@ -1799,11 +1573,11 @@ public class RobotAutonomousDrive extends OpMode
                 turnSpeed,
         
                 currentMission.toString(),
-                currentTaskID,
-                isCenterPole.toString(),
-                isConeCenter.toString(),
-                error_lr,
-                error_fn
+                currentTaskID
+                //isCenterPole.toString(),
+                //isConeCenter.toString(),
+                //error_lr,
+                //error_fn
         );
         Log.println(Log.INFO,"Status", a);
     }

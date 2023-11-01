@@ -215,7 +215,6 @@ public class EyeAll extends Subsystem
     public void CloseEye()
     {
         IsOpen = false;
-        //webcam.closeCameraDeviceAsync();
         webcam.stopStreaming();
     }
     
@@ -778,6 +777,12 @@ public class EyeAll extends Subsystem
                     targetConePointB, // Second point which defines the rectangle
                     PURPLE, // The color the rectangle is drawn in
                     2); // Thickness of the rectangle lines
+            Imgproc.line(input, new Point(0, cameraConfig.ConePointAY),
+                    new Point(Constants.CameraViewWidth, cameraConfig.ConePointAY),
+                    PURPLE, 2);
+            Imgproc.line(input, new Point(0, cameraConfig.ConePointBY),
+                    new Point(Constants.CameraViewWidth, cameraConfig.ConePointBY),
+                    PURPLE, 2);
     
             String lb = String.format("A(%d,%d)", cameraConfig.ConePointAX, cameraConfig.ConePointAY);
             Imgproc.putText(input, lb,
