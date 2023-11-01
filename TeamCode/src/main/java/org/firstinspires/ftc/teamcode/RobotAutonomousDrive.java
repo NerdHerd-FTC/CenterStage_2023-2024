@@ -347,7 +347,73 @@ public class RobotAutonomousDrive extends OpMode
                     setMissionTo(Mission.EXIT);
                     break;
                 }
-                moveA2B();
+                if (allianceConfig.Alliance.equals(AllianceConfig.RED) )
+                {
+                    if(allianceConfig.Location.equals(AllianceConfig.LEFT) )
+                    {
+                        if( propsLocation == EyeAll.ObjectLocation.ON_CAMERA_LEFT)
+                        {
+                            RedLeft_Left();
+                        }
+                        else if( propsLocation == EyeAll.ObjectLocation.ON_CAMERA_RIGHT)
+                        {
+                            RedLeft_Right();
+                        }
+                        else
+                        {
+                            RedLeft_Center();
+                        }
+                    }
+                    else //if (allianceConfig.Location.equals(AllianceConfig.RIGHT) ) RED
+                    {
+                        if( propsLocation == EyeAll.ObjectLocation.ON_CAMERA_LEFT)
+                        {
+                            RedRight_Left();
+                        }
+                        else if( propsLocation == EyeAll.ObjectLocation.ON_CAMERA_RIGHT)
+                        {
+                            RedRight_Right();
+                        }
+                        else
+                        {
+                            RedRight_Center();
+                        }
+                    }
+                }
+                else //if (allianceConfig.Alliance.equals(AllianceConfig.BLUE) )
+                {
+                    if(allianceConfig.Location.equals(AllianceConfig.LEFT) )
+                    {
+                        if( propsLocation == EyeAll.ObjectLocation.ON_CAMERA_LEFT)
+                        {
+
+                        }
+                        else if( propsLocation == EyeAll.ObjectLocation.ON_CAMERA_RIGHT)
+                        {
+
+                        }
+                        else
+                        {
+
+                        }
+                    }
+                    else //if (allianceConfig.Location.equals(AllianceConfig.RIGHT) ) BLUE
+                    {
+                        if( propsLocation == EyeAll.ObjectLocation.ON_CAMERA_LEFT)
+                        {
+
+                        }
+                        else if( propsLocation == EyeAll.ObjectLocation.ON_CAMERA_RIGHT)
+                        {
+
+                        }
+                        else
+                        {
+
+                        }
+                    }
+
+                }
                 break;
 
             default: //EXIT
@@ -414,115 +480,220 @@ public class RobotAutonomousDrive extends OpMode
                 setTaskTo(2);
             }
         }
-        /*else if(currentTaskID == 2)
-        {
-            if(!Objects.equals(allianceConfig.ParkingZone, "0"))
-            {
-                setTaskTo(3);
-            }
-            else // "0" so far
-            {
-                if(taskRunTimeout.seconds() < 2)
-                {
-                    allianceConfig.ParkingZone = String.valueOf(eye.ReadParkingID());
-                }
-                else // timeout
-                {
-                    setTaskTo(3);
-                }
-            }
-        }*/
-        else // loopTaskCount =
+        else
         {
             setMissionTo(Mission.MOVE_A2B);
         }
     }
     
-    double moveA2B_Strafe0;
-    double moveA2B_Straight0;
-    double moveA2B_Heading0;
-    private void moveA2B()
+
+    private void RedLeft_Left()
     {
-        // Notes:   Reverse movement is obtained by setting a negative distance (not speed)
-        //          holdHeading() is used after turns to let the heading stabilize
-        
-        if (currentTaskID == 0)
-        {
-            if (allianceConfig.Alliance.equals(AllianceConfig.RED) )
+        if (currentTaskID == 0) {
+            boolean done = driveStraightLoop(DRIVE_SPEED, 24, 0.0);
+
+            if (taskRunTimeout.seconds() >= 10)
             {
-                    if(allianceConfig.Location.equals(AllianceConfig.LEFT) )
-                    {
-                        if( propsLocation == EyeAll.ObjectLocation.ON_CAMERA_LEFT)
-                        {
-
-                        }
-                        else if( propsLocation == EyeAll.ObjectLocation.ON_CAMERA_RIGHT)
-                        {
-
-                        }
-                        else
-                        {
-
-                        }
-                    }
-                    else //if (allianceConfig.Location.equals(AllianceConfig.RIGHT) ) RED
-                    {
-                        if( propsLocation == EyeAll.ObjectLocation.ON_CAMERA_LEFT)
-                        {
-
-                        }
-                        else if( propsLocation == EyeAll.ObjectLocation.ON_CAMERA_RIGHT)
-                        {
-
-                        }
-                        else
-                        {
-
-                        }
-                    }
+                // timeout, bad! should not happen at all
+                resetDriveLoops();
+                setMissionTo(Mission.EXIT);
             }
-            else //if (allianceConfig.Alliance.equals(AllianceConfig.BLUE) )
+            else if (done)
             {
-                if(allianceConfig.Location.equals(AllianceConfig.LEFT) )
-                {
-                    if( propsLocation == EyeAll.ObjectLocation.ON_CAMERA_LEFT)
-                    {
-
-                    }
-                    else if( propsLocation == EyeAll.ObjectLocation.ON_CAMERA_RIGHT)
-                    {
-
-                    }
-                    else
-                    {
-
-                    }
-                }
-                else //if (allianceConfig.Location.equals(AllianceConfig.RIGHT) ) BLUE
-                {
-                    if( propsLocation == EyeAll.ObjectLocation.ON_CAMERA_LEFT)
-                    {
-
-                    }
-                    else if( propsLocation == EyeAll.ObjectLocation.ON_CAMERA_RIGHT)
-                    {
-
-                    }
-                    else
-                    {
-
-                    }
-                }
-
+                setTaskTo(1);
             }
-
-            moveA2B_Straight0 = 24;
-
-            setTaskTo(1);
         }
         else if (currentTaskID == 1)
         {
-            boolean done = driveStraightLoop(DRIVE_SPEED, moveA2B_Straight0, 0.0);
+            boolean done = turnToHeadingLoop(TURN_SPEED, 90);
+            if(taskRunTimeout.seconds() >= 5)
+            {
+                // timeout, bad! should not happen at all
+                resetDriveLoops();
+                setMissionTo(Mission.EXIT);
+            }
+            else if( done )
+            {
+                setTaskTo(2);
+            }
+        }
+        else if (currentTaskID == 2)
+        {
+            boolean done = driveStraightLoop(DRIVE_SPEED, 4, 90);
+
+            if (taskRunTimeout.seconds() >= 10)
+            {
+                // timeout, bad! should not happen at all
+                resetDriveLoops();
+                setMissionTo(Mission.EXIT);
+            }
+            else if (done)
+            {
+                setTaskTo(3);
+            }
+        }
+        else if (currentTaskID == 3)
+        {
+            boolean done = driveStraightLoop(DRIVE_SPEED, -8, 90);
+
+            if (taskRunTimeout.seconds() >= 10)
+            {
+                // timeout, bad! should not happen at all
+                resetDriveLoops();
+                setMissionTo(Mission.EXIT);
+            }
+            else if (done)
+            {
+                setTaskTo(4);
+            }
+        }
+        else if (currentTaskID == 4)
+        {
+            boolean done = driveStrafeLoop(24, DRIVE_SPEED, 10, 90);;
+
+            if (taskRunTimeout.seconds() >= 10)
+            {
+                // timeout, bad! should not happen at all
+                resetDriveLoops();
+                setMissionTo(Mission.EXIT);
+            }
+            else if (done)
+            {
+                setTaskTo(5);
+            }
+        }
+        else if(currentTaskID == 5)
+        {
+            boolean done = turnToHeadingLoop(TURN_SPEED, -90);
+            if(taskRunTimeout.seconds() >= 5)
+            {
+                // timeout, bad! should not happen at all
+                resetDriveLoops();
+                setMissionTo(Mission.EXIT);
+            }
+            else if( done )
+            {
+                setTaskTo(6);
+            }
+        }
+        else if (currentTaskID == 6) {
+            boolean done = driveStraightLoop(DRIVE_SPEED, 60, -90);
+            if (taskRunTimeout.seconds() >= 10) {
+                // timeout, bad! should not happen at all
+                resetDriveLoops();
+                setMissionTo(Mission.EXIT);
+            } else if (done) {
+                setMissionTo(Mission.EXIT);
+            }
+        }
+}
+
+    private void RedLeft_Right()
+    {
+        if (currentTaskID == 0) {
+            boolean done = driveStraightLoop(DRIVE_SPEED, 24, 0.0);
+
+            if (taskRunTimeout.seconds() >= 10)
+            {
+                // timeout, bad! should not happen at all
+                resetDriveLoops();
+                setMissionTo(Mission.EXIT);
+            }
+            else if (done)
+            {
+                setTaskTo(1);
+            }
+        }
+        else if (currentTaskID == 1)
+        {
+            boolean done = turnToHeadingLoop(TURN_SPEED, -90);
+            if(taskRunTimeout.seconds() >= 5)
+            {
+                // timeout, bad! should not happen at all
+                resetDriveLoops();
+                setMissionTo(Mission.EXIT);
+            }
+            else if( done )
+            {
+                setTaskTo(2);
+            }
+        }
+        else if (currentTaskID == 2)
+        {
+            boolean done = driveStraightLoop(DRIVE_SPEED, 4, -90);
+
+            if (taskRunTimeout.seconds() >= 10)
+            {
+                // timeout, bad! should not happen at all
+                resetDriveLoops();
+                setMissionTo(Mission.EXIT);
+            }
+            else if (done)
+            {
+                setTaskTo(3);
+            }
+        }
+        else if (currentTaskID == 3)
+        {
+            boolean done = driveStraightLoop(DRIVE_SPEED, -8, -90);
+
+            if (taskRunTimeout.seconds() >= 10)
+            {
+                // timeout, bad! should not happen at all
+                resetDriveLoops();
+                setMissionTo(Mission.EXIT);
+            }
+            else if (done)
+            {
+                setTaskTo(4);
+            }
+        }
+        else if (currentTaskID == 4)
+        {
+            boolean done = driveStrafeLoop(-24, DRIVE_SPEED, 10, -90);;
+
+            if (taskRunTimeout.seconds() >= 10)
+            {
+                // timeout, bad! should not happen at all
+                resetDriveLoops();
+                setMissionTo(Mission.EXIT);
+            }
+            else if (done)
+            {
+                setTaskTo(5);
+            }
+        }
+        else if (currentTaskID == 5) {
+            boolean done = driveStraightLoop(DRIVE_SPEED, 60, -90);
+            if (taskRunTimeout.seconds() >= 10) {
+                // timeout, bad! should not happen at all
+                resetDriveLoops();
+                setMissionTo(Mission.EXIT);
+            } else if (done) {
+                setMissionTo(Mission.EXIT);
+            }
+        }
+    }
+
+    private void RedLeft_Center()
+    {
+        if (currentTaskID == 0) {
+            boolean done = driveStraightLoop(DRIVE_SPEED, 24, 0.0);
+
+            if (taskRunTimeout.seconds() >= 10)
+            {
+                // timeout, bad! should not happen at all
+                resetDriveLoops();
+                setMissionTo(Mission.EXIT);
+            }
+            else if (done)
+            {
+                setTaskTo(1);
+            }
+        }
+        else if (currentTaskID == 1)
+        {
+            boolean done = driveStraightLoop(DRIVE_SPEED, -12, 0.0);
 
             if (taskRunTimeout.seconds() >= 10)
             {
@@ -534,24 +705,10 @@ public class RobotAutonomousDrive extends OpMode
             {
                 setTaskTo(2);
             }
-            //targetPositionArm = 1000; // rising arm up while moving forward
         }
         else if (currentTaskID == 2)
-        {   // red left
-            //boolean done = driveStrafeLoop(8, DRIVE_SPEED, 10, 0.0);
-            boolean done = driveStrafeLoop(40, DRIVE_SPEED, 10, 0.0);;
-//            if(allianceConfig.Alliance == AllianceConfig.RED )
-//                if( allianceConfig.Location == AllianceConfig.RIGHT )
-//                    done = driveStrafeLoop(16, DRIVE_SPEED, 10, 0.0);
-//                else
-//                    done = driveStrafeLoop(40, DRIVE_SPEED, 10, 0.0);
-//            else if(allianceConfig.Alliance == AllianceConfig.BLUE )
-//                if( allianceConfig.Location == AllianceConfig.LEFT)
-//                    done = driveStrafeLoop(-16, DRIVE_SPEED, 10, 0.0);
-//                else
-//                    done = driveStrafeLoop(-40, DRIVE_SPEED, 10, 0.0);
-//            else
-//                done = false;
+        {
+            boolean done = driveStrafeLoop(24, DRIVE_SPEED, 10, 0.0);;
 
             if (taskRunTimeout.seconds() >= 10)
             {
@@ -564,9 +721,24 @@ public class RobotAutonomousDrive extends OpMode
                 setTaskTo(3);
             }
         }
-        else if(currentTaskID == 3)
+        else if (currentTaskID == 3)
         {
-            boolean done = turnToHeadingLoop(TURN_SPEED, 90);
+            boolean done = driveStraightLoop(DRIVE_SPEED, 36, 0.0);
+
+            if (taskRunTimeout.seconds() >= 10)
+            {
+                // timeout, bad! should not happen at all
+                resetDriveLoops();
+                setMissionTo(Mission.EXIT);
+            }
+            else if (done)
+            {
+                setTaskTo(4);
+            }
+        }
+        else if(currentTaskID == 4)
+        {
+            boolean done = turnToHeadingLoop(TURN_SPEED, -90);
             if(taskRunTimeout.seconds() >= 5)
             {
                 // timeout, bad! should not happen at all
@@ -575,12 +747,12 @@ public class RobotAutonomousDrive extends OpMode
             }
             else if( done )
             {
-                setTaskTo(4);
+                setTaskTo(5);
             }
         }
-        else if (currentTaskID == 4)
+        else if (currentTaskID == 5)
         {
-            boolean done = driveStraightLoop(DRIVE_SPEED, 24, 90);
+            boolean done = driveStraightLoop(DRIVE_SPEED, 60, -90);
             if (taskRunTimeout.seconds() >= 10)
             {
                 // timeout, bad! should not happen at all
@@ -593,6 +765,246 @@ public class RobotAutonomousDrive extends OpMode
             }
         }
     }
+
+    private void RedRight_Left()
+    {
+        if (currentTaskID == 0) {
+            boolean done = driveStraightLoop(DRIVE_SPEED, 24, 0.0);
+
+            if (taskRunTimeout.seconds() >= 10)
+            {
+                // timeout, bad! should not happen at all
+                resetDriveLoops();
+                setMissionTo(Mission.EXIT);
+            }
+            else if (done)
+            {
+                setTaskTo(1);
+            }
+        }
+        else if (currentTaskID == 1)
+        {
+            boolean done = turnToHeadingLoop(TURN_SPEED, 90);
+            if(taskRunTimeout.seconds() >= 5)
+            {
+                // timeout, bad! should not happen at all
+                resetDriveLoops();
+                setMissionTo(Mission.EXIT);
+            }
+            else if( done )
+            {
+                setTaskTo(2);
+            }
+        }
+        else if (currentTaskID == 2)
+        {
+            boolean done = driveStraightLoop(DRIVE_SPEED, 4, 90);
+
+            if (taskRunTimeout.seconds() >= 10)
+            {
+                // timeout, bad! should not happen at all
+                resetDriveLoops();
+                setMissionTo(Mission.EXIT);
+            }
+            else if (done)
+            {
+                setTaskTo(3);
+            }
+        }
+        else if (currentTaskID == 3)
+        {
+            boolean done = driveStraightLoop(DRIVE_SPEED, -24, 90);
+
+            if (taskRunTimeout.seconds() >= 10)
+            {
+                // timeout, bad! should not happen at all
+                resetDriveLoops();
+                setMissionTo(Mission.EXIT);
+            }
+            else if (done)
+            {
+                setTaskTo(4);
+            }
+        }
+        else if (currentTaskID == 4)
+        {
+            boolean done = turnToHeadingLoop(TURN_SPEED, -45);
+            if(taskRunTimeout.seconds() >= 5)
+            {
+                // timeout, bad! should not happen at all
+                resetDriveLoops();
+                setMissionTo(Mission.EXIT);
+            }
+            else if( done )
+            {
+                setTaskTo(5);
+            }
+        }
+        else if (currentTaskID == 5)
+        {
+            boolean done = driveStraightLoop(DRIVE_SPEED, -24, -45);
+
+            if (taskRunTimeout.seconds() >= 10)
+            {
+                // timeout, bad! should not happen at all
+                resetDriveLoops();
+                setMissionTo(Mission.EXIT);
+            }
+            else if (done) {
+                setMissionTo(Mission.EXIT);
+            }
+        }
+    }
+
+    private void RedRight_Right()
+    {
+        if (currentTaskID == 0) {
+            boolean done = driveStraightLoop(DRIVE_SPEED, 24, 0.0);
+
+            if (taskRunTimeout.seconds() >= 10)
+            {
+                // timeout, bad! should not happen at all
+                resetDriveLoops();
+                setMissionTo(Mission.EXIT);
+            }
+            else if (done)
+            {
+                setTaskTo(1);
+            }
+        }
+        else if (currentTaskID == 1)
+        {
+            boolean done = turnToHeadingLoop(TURN_SPEED, -90);
+            if(taskRunTimeout.seconds() >= 5)
+            {
+                // timeout, bad! should not happen at all
+                resetDriveLoops();
+                setMissionTo(Mission.EXIT);
+            }
+            else if( done )
+            {
+                setTaskTo(2);
+            }
+        }
+        else if (currentTaskID == 2)
+        {
+            boolean done = driveStraightLoop(DRIVE_SPEED, 4, -90);
+
+            if (taskRunTimeout.seconds() >= 10)
+            {
+                // timeout, bad! should not happen at all
+                resetDriveLoops();
+                setMissionTo(Mission.EXIT);
+            }
+            else if (done)
+            {
+                setTaskTo(3);
+            }
+        }
+        else if (currentTaskID == 3)
+        {
+            boolean done = driveStraightLoop(DRIVE_SPEED, -8, -90);
+
+            if (taskRunTimeout.seconds() >= 10)
+            {
+                // timeout, bad! should not happen at all
+                resetDriveLoops();
+                setMissionTo(Mission.EXIT);
+            }
+            else if (done)
+            {
+                setTaskTo(4);
+            }
+        }
+        else if (currentTaskID == 4)
+        {
+            boolean done = driveStrafeLoop(20, DRIVE_SPEED, 10, -90);;
+
+            if (taskRunTimeout.seconds() >= 10)
+            {
+                // timeout, bad! should not happen at all
+                resetDriveLoops();
+                setMissionTo(Mission.EXIT);
+            }
+            else if (done)
+            {
+                setTaskTo(5);
+            }
+        }
+        else if (currentTaskID == 5) {
+            boolean done = driveStraightLoop(DRIVE_SPEED, 24, -90);
+            if (taskRunTimeout.seconds() >= 10) {
+                // timeout, bad! should not happen at all
+                resetDriveLoops();
+                setMissionTo(Mission.EXIT);
+            } else if (done) {
+                setMissionTo(Mission.EXIT);
+            }
+        }
+    }
+
+    private void RedRight_Center()
+    {
+        if (currentTaskID == 0) {
+            boolean done = driveStraightLoop(DRIVE_SPEED, 24, 0.0);
+
+            if (taskRunTimeout.seconds() >= 10)
+            {
+                // timeout, bad! should not happen at all
+                resetDriveLoops();
+                setMissionTo(Mission.EXIT);
+            }
+            else if (done)
+            {
+                setTaskTo(1);
+            }
+        }
+        else if (currentTaskID == 1)
+        {
+            boolean done = driveStraightLoop(DRIVE_SPEED, -20, 0.0);
+
+            if (taskRunTimeout.seconds() >= 10)
+            {
+                // timeout, bad! should not happen at all
+                resetDriveLoops();
+                setMissionTo(Mission.EXIT);
+            }
+            else if (done)
+            {
+                setTaskTo(2);
+            }
+        }
+        else if(currentTaskID == 2)
+        {
+            boolean done = turnToHeadingLoop(TURN_SPEED, -90);
+            if(taskRunTimeout.seconds() >= 5)
+            {
+                // timeout, bad! should not happen at all
+                resetDriveLoops();
+                setMissionTo(Mission.EXIT);
+            }
+            else if( done )
+            {
+                setTaskTo(3);
+            }
+        }
+        else if (currentTaskID == 3)
+        {
+            boolean done = driveStraightLoop(DRIVE_SPEED, 40, -90);
+            if (taskRunTimeout.seconds() >= 10)
+            {
+                // timeout, bad! should not happen at all
+                resetDriveLoops();
+                setMissionTo(Mission.EXIT);
+            }
+            else if (done)
+            {
+                setMissionTo(Mission.EXIT);
+            }
+        }
+    }
+
+
     int error_lr;
     int error_fn;
     double chassisMoveDistance = 0.;
@@ -605,7 +1017,9 @@ public class RobotAutonomousDrive extends OpMode
             //if(allianceConfig.Location == AllianceConfig.LEFT)
 
             extraDistance = 0;
-            setTaskTo(1);
+
+            //setTaskTo(1);
+            setMissionTo(Mission.EXIT);
         }
         else if(currentTaskID == 1)
         {
