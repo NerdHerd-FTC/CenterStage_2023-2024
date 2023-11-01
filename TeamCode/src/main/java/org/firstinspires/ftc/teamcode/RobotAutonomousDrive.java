@@ -262,12 +262,7 @@ public class RobotAutonomousDrive extends OpMode
     @Override
     public void init_loop()
     {
-        if(eye!= null) {
-            if (allianceConfig.Alliance.equals(AllianceConfig.RED))
-                propsLocation = eye.CheckPropsLocation(EyeAll.TargetObject.RED_CONE);
-            else
-                propsLocation = eye.CheckPropsLocation(EyeAll.TargetObject.BLUE_CONE);
-        }
+        EyeOp();
 
         //TuningHandMotors(gamepad1); // TODO debug
         //lifterMotorRunnable();
@@ -296,6 +291,40 @@ public class RobotAutonomousDrive extends OpMode
     public void start()
     {
         missionRunTimer.reset();
+    }
+
+
+    boolean waitabit = false;
+    ElapsedTime eyeruntime = new ElapsedTime();
+    private void EyeOp()
+    {
+        if(waitabit)
+        {
+            if(eyeruntime.milliseconds() > 500)
+            {
+                waitabit = false;
+            }
+            else
+            {
+                return;
+            }
+        }
+
+        //eye.UpdateConfigDataLoop(config);
+        //eye.SetOpInfoOnScreen(CurrentTask.toString());
+
+        if(eye!= null) {
+            if (allianceConfig.Alliance.equals(AllianceConfig.RED))
+                propsLocation = eye.CheckPropsLocation(EyeAll.TargetObject.RED_CONE);
+            else
+                propsLocation = eye.CheckPropsLocation(EyeAll.TargetObject.BLUE_CONE);
+
+            if (propsLocation != EyeAll.ObjectLocation.WAITING && propsLocation != EyeAll.ObjectLocation.UNKNOWN) {
+                waitabit = true;
+                eyeruntime.reset();
+                //eyeruntime.startTime();
+            }
+        }
     }
     
     // SPOT is loop-able function, MOVE is onetime execution function
@@ -468,17 +497,6 @@ public class RobotAutonomousDrive extends OpMode
     {
         if (currentTaskID == 0)
         {
-            if(eye!= null) {
-                if(propsLocation != EyeAll.ObjectLocation.ON_CAMERA_LEFT &&
-                        propsLocation != EyeAll.ObjectLocation.ON_CAMERA_RIGHT &&
-                        propsLocation != EyeAll.ObjectLocation.CENTER) {
-                    if (allianceConfig.Alliance.equals(AllianceConfig.RED))
-                        propsLocation = eye.CheckPropsLocation(EyeAll.TargetObject.RED_CONE);
-                    else
-                        propsLocation = eye.CheckPropsLocation(EyeAll.TargetObject.BLUE_CONE);
-                }
-            }
-
             //if (taskRunTimeout.milliseconds() > 2000)
             if(propsLocation == EyeAll.ObjectLocation.ON_CAMERA_LEFT ||
             propsLocation == EyeAll.ObjectLocation.ON_CAMERA_RIGHT ||
@@ -488,6 +506,10 @@ public class RobotAutonomousDrive extends OpMode
             {
                 // timeout, camera problems...
                 setMissionTo(Mission.MOVE_A2B);
+            }
+            else
+            {
+                EyeOp();
             }
         }
         else
