@@ -29,26 +29,25 @@
 
 package org.firstinspires.ftc.teamcode;
 
+//import static android.os.SystemClock.sleep;
 import static com.qualcomm.hardware.rev.RevHubOrientationOnRobot.xyzOrientation;
 
 import android.util.Log;
 
-//import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
-import com.qualcomm.robotcore.hardware.IMU;
-import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
-
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+//import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Gamepad;
+import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
-//import org.firstinspires.ftc.teamcode.core.subsystems.Eye;
+import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import org.firstinspires.ftc.teamcode.core.subsystems.EyeAll;
 import org.firstinspires.ftc.teamcode.util.AllianceConfig;
 import org.firstinspires.ftc.teamcode.util.Constants;
@@ -105,7 +104,7 @@ import java.util.Locale;
 
 @Autonomous(name="Game Robot Autonomous", group="Robot") // Drive
 //@Disabled
-public class RobotAutonomousDrive extends OpMode
+public class RobotAutonomousDrive extends LinearOpMode
 {
     /* Declare OpMode members. */
     private DcMotor frontLeft;
@@ -167,28 +166,31 @@ public class RobotAutonomousDrive extends OpMode
 
     //Four (4) white Pixels, one (1) for each set of Spike Marks. The Pixels will start centered on
     //top of the center Spike Marks
-    private EyeAll.ObjectLocation propsLocation = EyeAll.ObjectLocation.CENTER;
+    private EyeAll.ObjectLocation propsLocation = EyeAll.ObjectLocation.UNKNOWN;
 
-    
-    /**
-     * Initialize any subsystems that need initializing before the game starts.
-     */
+
     @Override
-    public void init()
-    {
+    public void runOpMode() throws InterruptedException {
         autoTimer30Sec.reset();
-        
+
         eye = new EyeAll(hardwareMap); // comment it out if not camera installed
 
         if(eye!= null)
+        {
             eye.autoInit();
-    
+            propsLocation = EyeAll.ObjectLocation.UNKNOWN;
+        }
+        else
+        {
+            propsLocation = EyeAll.ObjectLocation.CENTER; // testing
+        }
+
         // Initialize the drive system variables.
         frontLeft = hardwareMap.get(DcMotor.class, Constants.leftfrontMotor);
         frontRight = hardwareMap.get(DcMotor.class, Constants.rightfrontMotor);
         backLeft = hardwareMap.get(DcMotor.class, Constants.leftbackMotor);
         backRight = hardwareMap.get(DcMotor.class, Constants.rightbackMotor);
-    
+
         // To drive forward, most robots need the motor on one side to be reversed, because the axles point in opposite directions.
         // When run, this OpMode should start both motors driving forward. So adjust these two lines based on your first test drive.
         // Note: The settings here assume direct drive on left and right wheels.  Gear Reduction or 90 Deg drives may require direction flips
@@ -197,7 +199,7 @@ public class RobotAutonomousDrive extends OpMode
         backLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         backRight.setDirection(DcMotorSimple.Direction.FORWARD);
 
-    
+
         // define initialization values for IMU, and then initialize it.
         //BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
         //parameters.angleUnit            = BNO055IMU.AngleUnit.DEGREES;
@@ -210,7 +212,7 @@ public class RobotAutonomousDrive extends OpMode
         double xRotation = 0;  // enter the desired X rotation angle here.
         double yRotation = 0;  // enter the desired Y rotation angle here.
         double zRotation = 0;  // enter the desired Z rotation angle here.
-    
+
         Orientation hubRotation = xyzOrientation(xRotation, yRotation, zRotation);
         RevHubOrientationOnRobot orientationOnRobot = new RevHubOrientationOnRobot(hubRotation);
         imu.initialize(new IMU.Parameters(orientationOnRobot));
@@ -224,13 +226,13 @@ public class RobotAutonomousDrive extends OpMode
         frontRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         backLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         backRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-    
+
         // Set the encoders for closed loop speed control, and reset the heading.
         backLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         backRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         frontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         frontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-    
+
         resetHeading();
 
         AllianceConfig.ReadConfigFromFile(allianceConfig);
@@ -238,38 +240,13 @@ public class RobotAutonomousDrive extends OpMode
         //eye.OpenEyeToRead();
         if(eye!= null)
             eye.OpenEyeToFindProps();
-    }
-    
-    /*
-     * Code to run ONCE after the driver hits STOP
-     */
-    @Override
-    public void stop() {
-        if(eye!= null)
-            eye.CloseEye();
-    }
-    
-    /*
-     * Code to run REPEATEDLY after the driver hits INIT, but before they hit PLAY
-     */
-    // Tag ID 121, 122, 123 from the 36h11 family
-    int ZONE_1 = 121;
-    int ZONE_2 = 122;
-    int ZONE_3 = 123;
-    
-    //int AprilTagDetectionId = -1;
-
-    @Override
-    public void init_loop()
-    {
-        EyeOp();
 
         //TuningHandMotors(gamepad1); // TODO debug
         //lifterMotorRunnable();
         //rotatorMotorRunnable();
         //armMotorRunnable();
         telemetry.addData("Software Version: ",
-            BuildConfig.BUILD_TIME);
+                BuildConfig.BUILD_TIME);
         telemetry.addData("TEAM #: ",
                 allianceConfig.TeamNumber);
         telemetry.addData("ALLIANCE : ",
@@ -278,19 +255,22 @@ public class RobotAutonomousDrive extends OpMode
                 allianceConfig.Location);
         telemetry.addData("Route #: ",
                 allianceConfig.PathRoute);
-    
-        composeTelemetry();
-    
-        telemetry.update();
-    }
 
-    /*
-     * Code to run ONCE when the driver hits PLAY
-     */
-    @Override
-    public void start()
-    {
-        missionRunTimer.reset();
+        composeTelemetry();
+        telemetry.update();
+
+        waitForStart();
+        setMissionTo(Mission.SPOT_A);
+
+        while(opModeIsActive())
+        {
+            loopTasks();
+
+            composeTelemetry();
+            telemetry.update();
+
+            sleep(10);  // Pause to display last telemetry message.
+        }
     }
 
 
@@ -322,7 +302,6 @@ public class RobotAutonomousDrive extends OpMode
             if (propsLocation != EyeAll.ObjectLocation.WAITING && propsLocation != EyeAll.ObjectLocation.UNKNOWN) {
                 waitabit = true;
                 eyeruntime.reset();
-                //eyeruntime.startTime();
             }
         }
     }
@@ -342,8 +321,7 @@ public class RobotAutonomousDrive extends OpMode
      */
     
     int missionStepTimeout = 10; // TODO debug
-    @Override
-    public void loop()
+    public void loopTasks()
     {
         switch (currentMission)
         {
@@ -453,15 +431,9 @@ public class RobotAutonomousDrive extends OpMode
         addLog();
     
         //TuningHandMotors(gamepad1); // TODO debug
-    
-        //sendTelemetry(true);
-        composeTelemetry(); //don't need it, just update it with presets
-        
-        telemetry.update();
-        //sleep(1000);  // Pause to display last telemetry message.
     }
     
-    EyeAll.ObjectLocation isCenterPole = EyeAll.ObjectLocation.UNKNOWN;
+    //EyeAll.ObjectLocation isCenterPole = EyeAll.ObjectLocation.UNKNOWN;
     
     
     private Mission currentMission = Mission.SPOT_A; // debug: TODO
@@ -502,7 +474,7 @@ public class RobotAutonomousDrive extends OpMode
             propsLocation == EyeAll.ObjectLocation.ON_CAMERA_RIGHT ||
             propsLocation == EyeAll.ObjectLocation.CENTER)
                 setMissionTo(Mission.MOVE_A2B);
-            else if (taskRunTimeout.seconds() > 2)
+            else if (taskRunTimeout.seconds() > 4)
             {
                 // timeout, camera problems...
                 setMissionTo(Mission.MOVE_A2B);
@@ -1522,7 +1494,7 @@ public class RobotAutonomousDrive extends OpMode
         telemetry.addData("IMU heading", "%.2f", getRawHeading());
     
         //telemetry.addData("Camera On?", eye.IsOpen);
-        telemetry.addData("April Tag ID #", isCenterPole);
+        //telemetry.addData("April Tag ID #", isCenterPole);
         //telemetry.addData("Cone Location", isConeCenter);
     
 
