@@ -105,8 +105,9 @@ public class EyeAll extends Subsystem
         }
     
         propsDetectionPipeline = new PropsDetectionPipeline();
-        aprilTagDetectionPipeline = new AprilTagDetectionPipeline(tagsize, fx, fy, cx, cy);
-    
+        //aprilTagDetectionPipeline = new AprilTagDetectionPipeline(tagsize, fx, fy, cx, cy);
+
+        doneInitCone = false;
     }
     
     @Override
@@ -398,8 +399,8 @@ public class EyeAll extends Subsystem
         countFRONT = 0;
         countBACK = 0;*/
         objectFoundInfo.angle_avg = -90;
-        objectFoundInfo.center_x_avg = 0;
-        objectFoundInfo.center_y_avg = 0;
+        objectFoundInfo.center_x_avg = -1;
+        objectFoundInfo.center_y_avg = -1;
         objectFoundInfo.width_avg = 0;
         objectFoundInfo.height_avg = 0;
         objectFoundInfo.lrPosition = ObjectLocation.UNKNOWN;
@@ -420,19 +421,19 @@ public class EyeAll extends Subsystem
         }
         countTotalLR++;
 
-        int centero = Util.inBoundary(objectFoundInfo.center_x_avg,
-                cameraConfig.ConePointAX, cameraConfig.ConePointBX);
-        if( centero == 0)
-        {
-            countCenterLR++;
+        if( objectFoundInfo.center_x_avg > 0) {
+            int centero = Util.inBoundary(objectFoundInfo.center_x_avg,
+                    cameraConfig.ConePointAX, cameraConfig.ConePointBX);
+            if (centero == 0) {
+                countCenterLR++;
+            } else if (centero == -1) {
+                countLEFT++;
+            } else {
+                countRIGHT++;
+            }
         }
-        else if(centero== -1 )
-        {
-            countLEFT++;
-        }
-        else
-        {
-            countRIGHT++;
+        else {
+            objectFoundInfo.lrPosition = ObjectLocation.UNKNOWN;
         }
 
         if(countTotalLR < RETRY_MAX)
@@ -451,10 +452,14 @@ public class EyeAll extends Subsystem
                 {
                     objectFoundInfo.lrPosition = ObjectLocation.ON_CAMERA_RIGHT;
                 }
-                else
+                else if(countLEFT > countRIGHT)
                 {
                     objectFoundInfo.lrPosition = ObjectLocation.ON_CAMERA_LEFT;
                 }
+                else if(countLEFT == 0)
+                    objectFoundInfo.lrPosition = ObjectLocation.WAITING;
+                else
+                    objectFoundInfo.lrPosition = ObjectLocation.UNKNOWN;
             }
             countTotalLR = 0;
             countCenterLR = 0;
