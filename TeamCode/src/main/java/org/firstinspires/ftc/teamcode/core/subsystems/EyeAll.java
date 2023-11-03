@@ -422,11 +422,11 @@ public class EyeAll extends Subsystem
             resetCount();
         }
 
-        if(!objectFoundInfo.found)
+        if( !objectFoundInfo.found )
         {
             objectFoundInfo.lrPosition = ObjectLocation.UNKNOWN;
         }
-        else {} // TODO pls fix this bug
+        else {} // TODO pls fix this bug, add a little timeout to reset this status value
 
         countTotalLR++;
 

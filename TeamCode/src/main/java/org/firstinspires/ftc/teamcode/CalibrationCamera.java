@@ -31,7 +31,6 @@ package org.firstinspires.ftc.teamcode;
 
 import static com.qualcomm.hardware.rev.RevHubOrientationOnRobot.xyzOrientation;
 
-import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -39,8 +38,6 @@ import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import org.firstinspires.ftc.teamcode.core.subsystems.EyeAll;
@@ -56,13 +53,13 @@ public class CalibrationCamera extends LinearOpMode
     
     enum Task
     {
-        CONE_LOCATION,
+        PROP_LOCATION,
         RED_COLOR,
         BLUE_COLOR,
         PATH_CENTER
     }
     
-    private Task CurrentTask = Task.CONE_LOCATION;
+    private Task CurrentTask = Task.PROP_LOCATION;
     private Task[] TaskIdxArray = Task.values();
     
     
@@ -212,7 +209,7 @@ public class CalibrationCamera extends LinearOpMode
                 keylock_righ_bumper = false;
             }
     
-            if(CurrentTask == Task.CONE_LOCATION )
+            if(CurrentTask == Task.PROP_LOCATION)
             {
                 objectLocationTuning();
             }
@@ -255,7 +252,7 @@ public class CalibrationCamera extends LinearOpMode
 
             YawPitchRollAngles currentRobotAngles = imu.getRobotYawPitchRollAngles();
     
-            telemetry.addLine("Cone- Ax:" +
+            telemetry.addLine("Prop- Ax:" +
                     config.ConePointAX + " Ay:" + config.ConePointAY +
                     " Bx:" + config.ConePointBX + " By:" + config.ConePointBY + " W:" + config.ConeWidth);
 
@@ -303,7 +300,7 @@ public class CalibrationCamera extends LinearOpMode
         
         EyeAll.ObjectLocation location = EyeAll.ObjectLocation.UNKNOWN;
         
-        if(CurrentTask == Task.CONE_LOCATION )
+        if(CurrentTask == Task.PROP_LOCATION)
         {
             location = eye.CheckPropsLocation(EyeAll.TargetObject.RED_CONE);
         }

@@ -112,7 +112,7 @@ import java.util.concurrent.TimeUnit;
  *  Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
  */
 
-@Autonomous(name="Game Robot Autonomous", group="Robot") // Drive
+@Autonomous(name="Game Robot Autonomous", group="Robot")
 //@Disabled
 public class RobotAutonomousDrive extends LinearOpMode
 {
@@ -188,12 +188,8 @@ public class RobotAutonomousDrive extends LinearOpMode
         if(eye!= null)
         {
             eye.autoInit();
-            propsLocation = EyeAll.ObjectLocation.UNKNOWN;
         }
-        else
-        {
-            propsLocation = EyeAll.ObjectLocation.CENTER; // testing
-        }
+        propsLocation = EyeAll.ObjectLocation.UNKNOWN;
 
         // Initialize the drive system variables.
         frontLeft = hardwareMap.get(DcMotor.class, Constants.leftfrontMotor);
@@ -223,7 +219,7 @@ public class RobotAutonomousDrive extends LinearOpMode
         double yRotation = 0;  // enter the desired Y rotation angle here.
         double zRotation = 0;  // enter the desired Z rotation angle here.
 
-        /* The next two lines define Hub orientation.
+        /* The next lines define Hub orientation.
          * The Default Orientation (shown) is when a hub is mounted horizontally with the printed logo pointing UP and the USB port pointing FORWARD.
          *
          * To Do:  EDIT these two lines to match YOUR mounting configuration.
@@ -231,7 +227,6 @@ public class RobotAutonomousDrive extends LinearOpMode
 //        RevHubOrientationOnRobot.LogoFacingDirection logoDirection = RevHubOrientationOnRobot.LogoFacingDirection.UP;
 //        RevHubOrientationOnRobot.UsbFacingDirection  usbDirection  = RevHubOrientationOnRobot.UsbFacingDirection.FORWARD;
 //        RevHubOrientationOnRobot orientationOnRobot = new RevHubOrientationOnRobot(logoDirection, usbDirection);
-
 
         Orientation hubRotation = xyzOrientation(xRotation, yRotation, zRotation);
         RevHubOrientationOnRobot orientationOnRobot = new RevHubOrientationOnRobot(hubRotation);
@@ -257,7 +252,6 @@ public class RobotAutonomousDrive extends LinearOpMode
 
         AllianceConfig.ReadConfigFromFile(allianceConfig);
 
-        //eye.OpenEyeToRead();
         if(eye!= null)
             eye.OpenEyeToFindProps();
 
@@ -265,6 +259,7 @@ public class RobotAutonomousDrive extends LinearOpMode
         //lifterMotorRunnable();
         //rotatorMotorRunnable();
         //armMotorRunnable();
+
         telemetry.addData("Software Version: ",
                 BuildConfig.BUILD_TIME);
         telemetry.addData("TEAM #: ",
@@ -287,7 +282,6 @@ public class RobotAutonomousDrive extends LinearOpMode
 //            sleep(100);  // Pause to display last telemetry message.
 //        }
 
-
         setMissionTo(Mission.SPOT_A);
 
         while(opModeIsActive())
@@ -300,7 +294,6 @@ public class RobotAutonomousDrive extends LinearOpMode
             sleep(10);  // Pause to display last telemetry message.
         }
     }
-
 
     boolean waitabit = false;
     ElapsedTime eyeruntime = new ElapsedTime();
@@ -318,7 +311,6 @@ public class RobotAutonomousDrive extends LinearOpMode
             }
         }
 
-        //eye.UpdateConfigDataLoop(config);
         //eye.SetOpInfoOnScreen(CurrentTask.toString());
 
         if(eye!= null) {
@@ -333,8 +325,7 @@ public class RobotAutonomousDrive extends LinearOpMode
             }
         }
     }
-    
-    // SPOT is loop-able function, MOVE is onetime execution function
+
     private enum Mission
     {
         SPOT_A,
@@ -343,19 +334,45 @@ public class RobotAutonomousDrive extends LinearOpMode
 
         EXIT
     }
-    
-    /*
-     * Code to run REPEATEDLY after the driver hits PLAY but before they hit STOP
-     */
-    
-    int missionStepTimeout = 10; // TODO debug
+
+
+    private Mission currentMission = Mission.SPOT_A;
+    private Mission previousMission = Mission.SPOT_A; // debug: TODO
+    ElapsedTime missionRunTimer = new ElapsedTime();
+    private void setMissionTo(Mission newMission)
+    {
+        // debug: TODO
+//        if(newMission == Mission.MOVE_A2B)
+//        {
+//            currentMission = Mission.EXIT;
+//            missionStepTimeout = 1000;
+//            return;
+//        }
+        // end debug
+
+        previousMission = currentMission;
+        currentMission = newMission;
+        missionRunTimer.reset();
+        setTaskTo(0);
+    }
+
+    private int currentTaskID = 0;
+    private int previousTaskID = 0;
+    private final ElapsedTime taskRunTimeout = new ElapsedTime();
+    private void setTaskTo(int newTaskID)
+    {
+        previousTaskID = currentTaskID;
+        currentTaskID = newTaskID;
+        taskRunTimeout.reset();
+    }
+
+
     public void loopTasks()
     {
         switch (currentMission)
         {
             case SPOT_A:
-                // find self init position, read parking zone picture, drop preload to low junction
-                if (missionRunTimer.seconds() > missionStepTimeout)
+                if (missionRunTimer.seconds() > 5)
                 {
                     // Error!
                     setMissionTo(Mission.EXIT);
@@ -364,16 +381,16 @@ public class RobotAutonomousDrive extends LinearOpMode
                 spotA();
                 break;
             case SPOT_B:
-                if (missionRunTimer.seconds() > missionStepTimeout)
+                if (missionRunTimer.seconds() > 1)
                 {
                     // Error!
                     setMissionTo(Mission.EXIT);
                     break;
                 }
-                spotB(-520, false);
+                spotB();
                 break;
             case MOVE_A2B:
-                if (missionRunTimer.seconds() > missionStepTimeout)
+                if (missionRunTimer.seconds() > 25) // TODO debug
                 {
                     // Error!
                     setMissionTo(Mission.EXIT);
@@ -387,13 +404,13 @@ public class RobotAutonomousDrive extends LinearOpMode
                         {
                             RedLeft_Left(1);
                         }
-                        else if( propsLocation == EyeAll.ObjectLocation.ON_CAMERA_RIGHT)
-                        {
-                            RedLeft_Right(1);
-                        }
-                        else
+                        else if( propsLocation == EyeAll.ObjectLocation.CENTER)
                         {
                             RedLeft_Center(1);
+                        }
+                        else //ON_CAMERA_RIGHT as the default
+                        {
+                            RedLeft_Right(1);
                         }
                     }
                     else //if (allianceConfig.Location.equals(AllianceConfig.RIGHT) ) RED
@@ -406,7 +423,7 @@ public class RobotAutonomousDrive extends LinearOpMode
                         {
                             RedRight_Right(1);
                         }
-                        else
+                        else //CENTER as the default
                         {
                             RedRight_Center(1);
                         }
@@ -426,7 +443,7 @@ public class RobotAutonomousDrive extends LinearOpMode
                             // Blue Left ==
                             RedRight_Right(-1);
                         }
-                        else
+                        else //CENTER as the default
                         {
                             // Blue Left ==
                             RedRight_Center(-1);
@@ -439,15 +456,15 @@ public class RobotAutonomousDrive extends LinearOpMode
                             // Blue Right ==
                             RedLeft_Left(-1);
                         }
-                        else if( propsLocation == EyeAll.ObjectLocation.ON_CAMERA_RIGHT)
-                        {
-                            // Blue Right ==
-                            RedLeft_Right(-1);
-                        }
-                        else
+                        else if( propsLocation == EyeAll.ObjectLocation.CENTER)
                         {
                             // Blue Right ==
                             RedLeft_Center(-1);
+                        }
+                        else //ON_CAMERA_RIGHT as the default
+                        {
+                            // Blue Right ==
+                            RedLeft_Right(-1);
                         }
                     }
 
@@ -457,47 +474,15 @@ public class RobotAutonomousDrive extends LinearOpMode
             default: //EXIT
                 break;
         }
-        
+
+//        TuningHandMotors(gamepad1); // TODO debug
 //        lifterMotorRunnable();
 //        rotatorMotorRunnable();
 //        armMotorRunnable();
     
         addLog();
-    
-        //TuningHandMotors(gamepad1); // TODO debug
     }
-    
-    //EyeAll.ObjectLocation isCenterPole = EyeAll.ObjectLocation.UNKNOWN;
-    
-    
-    private Mission currentMission = Mission.SPOT_A; // debug: TODO
-    private Mission previousMission = Mission.SPOT_A;
-    ElapsedTime missionRunTimer = new ElapsedTime();
-    private void setMissionTo(Mission newMission)
-    {
-        // debug: TODO
-//        if(newMission == Mission.MOVE_A2B)
-//        {
-//            currentMission = Mission.EXIT;
-//            missionStepTimeout = 1000;
-//            return;
-//        }
-        // end debug
-    
-        previousMission = currentMission;
-        currentMission = newMission;
-        missionRunTimer.reset();
-        setTaskTo(0);
-    }
-    private int currentTaskID = 0;
-    private int previousTaskID = 0;
-    private final ElapsedTime taskRunTimeout = new ElapsedTime();
-    private void setTaskTo(int newTaskID)
-    {
-        previousTaskID = currentTaskID;
-        currentTaskID = newTaskID;
-        taskRunTimeout.reset();
-    }
+
     
     private void spotA()
     {
@@ -510,7 +495,7 @@ public class RobotAutonomousDrive extends LinearOpMode
             {
                 setTaskTo(1);
             }
-            else if (taskRunTimeout.seconds() > 4)
+            else if (taskRunTimeout.seconds() > 4 || eye == null)
             {
                 // timeout, camera problems...
                 setTaskTo(1);
@@ -530,14 +515,13 @@ public class RobotAutonomousDrive extends LinearOpMode
             setMissionTo(Mission.MOVE_A2B);
         }
     }
-    
 
     private void RedLeft_Left(int isRedCoff)
     {
         if (currentTaskID == 0) {
             boolean done = driveStraightLoop(DRIVE_SPEED, 24, 0.0);
 
-            if (taskRunTimeout.seconds() >= 10)
+            if (taskRunTimeout.seconds() >= 7)
             {
                 // timeout, bad! should not happen at all
                 resetDriveLoops();
@@ -566,7 +550,7 @@ public class RobotAutonomousDrive extends LinearOpMode
         {
             boolean done = driveStraightLoop(DRIVE_SPEED, 4, 90);
 
-            if (taskRunTimeout.seconds() >= 10)
+            if (taskRunTimeout.seconds() >= 7)
             {
                 // timeout, bad! should not happen at all
                 resetDriveLoops();
@@ -581,7 +565,7 @@ public class RobotAutonomousDrive extends LinearOpMode
         {
             boolean done = driveStraightLoop(DRIVE_SPEED, -8, 90);
 
-            if (taskRunTimeout.seconds() >= 10)
+            if (taskRunTimeout.seconds() >= 7)
             {
                 // timeout, bad! should not happen at all
                 resetDriveLoops();
@@ -594,9 +578,9 @@ public class RobotAutonomousDrive extends LinearOpMode
         }
         else if (currentTaskID == 4)
         {
-            boolean done = driveStrafeLoop(24, DRIVE_SPEED, 10, 90);;
+            boolean done = driveStrafeLoop(24, DRIVE_SPEED, 9, 90);;
 
-            if (taskRunTimeout.seconds() >= 10)
+            if (taskRunTimeout.seconds() >= 7)
             {
                 // timeout, bad! should not happen at all
                 resetDriveLoops();
@@ -623,7 +607,7 @@ public class RobotAutonomousDrive extends LinearOpMode
         }
         else if (currentTaskID == 6) {
             boolean done = driveStraightLoop(DRIVE_SPEED, 60, -90);
-            if (taskRunTimeout.seconds() >= 10) {
+            if (taskRunTimeout.seconds() >= 9) {
                 // timeout, bad! should not happen at all
                 resetDriveLoops();
                 setMissionTo(Mission.EXIT);
@@ -633,12 +617,12 @@ public class RobotAutonomousDrive extends LinearOpMode
         }
 }
 
-    private void RedLeft_Right(int isRedCoff)
+    private void RedLeft_Right(int isRedCoff) // == Blue Right
     {
         if (currentTaskID == 0) {
             boolean done = driveStraightLoop(DRIVE_SPEED, 24, 0.0);
 
-            if (taskRunTimeout.seconds() >= 10)
+            if (taskRunTimeout.seconds() >= 7)
             {
                 // timeout, bad! should not happen at all
                 resetDriveLoops();
@@ -651,7 +635,7 @@ public class RobotAutonomousDrive extends LinearOpMode
         }
         else if (currentTaskID == 1)
         {
-            boolean done = turnToHeadingLoop(TURN_SPEED, -90);
+            boolean done = turnToHeadingLoop(TURN_SPEED, -90 *isRedCoff);
             if(taskRunTimeout.seconds() >= 5)
             {
                 // timeout, bad! should not happen at all
@@ -665,9 +649,9 @@ public class RobotAutonomousDrive extends LinearOpMode
         }
         else if (currentTaskID == 2)
         {
-            boolean done = driveStraightLoop(DRIVE_SPEED, 4, -90);
+            boolean done = driveStraightLoop(DRIVE_SPEED, 4, -90*isRedCoff);
 
-            if (taskRunTimeout.seconds() >= 10)
+            if (taskRunTimeout.seconds() >= 5)
             {
                 // timeout, bad! should not happen at all
                 resetDriveLoops();
@@ -680,9 +664,9 @@ public class RobotAutonomousDrive extends LinearOpMode
         }
         else if (currentTaskID == 3)
         {
-            boolean done = driveStraightLoop(DRIVE_SPEED, -8, -90);
+            boolean done = driveStraightLoop(DRIVE_SPEED, -8, -90*isRedCoff);
 
-            if (taskRunTimeout.seconds() >= 10)
+            if (taskRunTimeout.seconds() >= 5)
             {
                 // timeout, bad! should not happen at all
                 resetDriveLoops();
@@ -695,9 +679,9 @@ public class RobotAutonomousDrive extends LinearOpMode
         }
         else if (currentTaskID == 4)
         {
-            boolean done = driveStrafeLoop(-24, DRIVE_SPEED, 10, -90);;
+            boolean done = driveStrafeLoop(-24, DRIVE_SPEED, 9, -90*isRedCoff);;
 
-            if (taskRunTimeout.seconds() >= 10)
+            if (taskRunTimeout.seconds() >= 7)
             {
                 // timeout, bad! should not happen at all
                 resetDriveLoops();
@@ -709,8 +693,8 @@ public class RobotAutonomousDrive extends LinearOpMode
             }
         }
         else if (currentTaskID == 5) {
-            boolean done = driveStraightLoop(DRIVE_SPEED, 60, -90);
-            if (taskRunTimeout.seconds() >= 10) {
+            boolean done = driveStraightLoop(DRIVE_SPEED, 60, -90*isRedCoff);
+            if (taskRunTimeout.seconds() >= 9) {
                 // timeout, bad! should not happen at all
                 resetDriveLoops();
                 setMissionTo(Mission.EXIT);
@@ -720,12 +704,13 @@ public class RobotAutonomousDrive extends LinearOpMode
         }
     }
 
+
     private void RedLeft_Center(int isRedCoff)
     {
         if (currentTaskID == 0) {
             boolean done = driveStraightLoop(DRIVE_SPEED, 24, 0.0);
 
-            if (taskRunTimeout.seconds() >= 10)
+            if (taskRunTimeout.seconds() >= 7)
             {
                 // timeout, bad! should not happen at all
                 resetDriveLoops();
@@ -740,7 +725,7 @@ public class RobotAutonomousDrive extends LinearOpMode
         {
             boolean done = driveStraightLoop(DRIVE_SPEED, -12, 0.0);
 
-            if (taskRunTimeout.seconds() >= 10)
+            if (taskRunTimeout.seconds() >= 5)
             {
                 // timeout, bad! should not happen at all
                 resetDriveLoops();
@@ -753,9 +738,9 @@ public class RobotAutonomousDrive extends LinearOpMode
         }
         else if (currentTaskID == 2)
         {
-            boolean done = driveStrafeLoop(24, DRIVE_SPEED, 10, 0.0);;
+            boolean done = driveStrafeLoop(24, DRIVE_SPEED, 9, 0.0);;
 
-            if (taskRunTimeout.seconds() >= 10)
+            if (taskRunTimeout.seconds() >= 7)
             {
                 // timeout, bad! should not happen at all
                 resetDriveLoops();
@@ -770,7 +755,7 @@ public class RobotAutonomousDrive extends LinearOpMode
         {
             boolean done = driveStraightLoop(DRIVE_SPEED, 36, 0.0);
 
-            if (taskRunTimeout.seconds() >= 10)
+            if (taskRunTimeout.seconds() >= 8)
             {
                 // timeout, bad! should not happen at all
                 resetDriveLoops();
@@ -798,7 +783,7 @@ public class RobotAutonomousDrive extends LinearOpMode
         else if (currentTaskID == 5)
         {
             boolean done = driveStraightLoop(DRIVE_SPEED, 60, -90);
-            if (taskRunTimeout.seconds() >= 10)
+            if (taskRunTimeout.seconds() >= 9)
             {
                 // timeout, bad! should not happen at all
                 resetDriveLoops();
@@ -810,6 +795,7 @@ public class RobotAutonomousDrive extends LinearOpMode
             }
         }
     }
+
 
     private void RedRight_Left(int isRedCoff)
     {
@@ -845,7 +831,7 @@ public class RobotAutonomousDrive extends LinearOpMode
         {
             boolean done = driveStraightLoop(DRIVE_SPEED, 4, 90);
 
-            if (taskRunTimeout.seconds() >= 10)
+            if (taskRunTimeout.seconds() >= 5)
             {
                 // timeout, bad! should not happen at all
                 resetDriveLoops();
@@ -860,7 +846,7 @@ public class RobotAutonomousDrive extends LinearOpMode
         {
             boolean done = driveStraightLoop(DRIVE_SPEED, -24, 90);
 
-            if (taskRunTimeout.seconds() >= 10)
+            if (taskRunTimeout.seconds() >= 7)
             {
                 // timeout, bad! should not happen at all
                 resetDriveLoops();
@@ -889,7 +875,7 @@ public class RobotAutonomousDrive extends LinearOpMode
         {
             boolean done = driveStraightLoop(DRIVE_SPEED, -24, -45);
 
-            if (taskRunTimeout.seconds() >= 10)
+            if (taskRunTimeout.seconds() >= 7)
             {
                 // timeout, bad! should not happen at all
                 resetDriveLoops();
@@ -901,12 +887,13 @@ public class RobotAutonomousDrive extends LinearOpMode
         }
     }
 
+
     private void RedRight_Right(int isRedCoff)
     {
         if (currentTaskID == 0) {
             boolean done = driveStraightLoop(DRIVE_SPEED, 24, 0.0);
 
-            if (taskRunTimeout.seconds() >= 10)
+            if (taskRunTimeout.seconds() >= 7)
             {
                 // timeout, bad! should not happen at all
                 resetDriveLoops();
@@ -935,7 +922,7 @@ public class RobotAutonomousDrive extends LinearOpMode
         {
             boolean done = driveStraightLoop(DRIVE_SPEED, 4, -90);
 
-            if (taskRunTimeout.seconds() >= 10)
+            if (taskRunTimeout.seconds() >= 5)
             {
                 // timeout, bad! should not happen at all
                 resetDriveLoops();
@@ -950,7 +937,7 @@ public class RobotAutonomousDrive extends LinearOpMode
         {
             boolean done = driveStraightLoop(DRIVE_SPEED, -8, -90);
 
-            if (taskRunTimeout.seconds() >= 10)
+            if (taskRunTimeout.seconds() >= 5)
             {
                 // timeout, bad! should not happen at all
                 resetDriveLoops();
@@ -963,9 +950,9 @@ public class RobotAutonomousDrive extends LinearOpMode
         }
         else if (currentTaskID == 4)
         {
-            boolean done = driveStrafeLoop(20, DRIVE_SPEED, 10, -90);;
+            boolean done = driveStrafeLoop(20, DRIVE_SPEED, 9, -90);;
 
-            if (taskRunTimeout.seconds() >= 10)
+            if (taskRunTimeout.seconds() >= 7)
             {
                 // timeout, bad! should not happen at all
                 resetDriveLoops();
@@ -978,7 +965,7 @@ public class RobotAutonomousDrive extends LinearOpMode
         }
         else if (currentTaskID == 5) {
             boolean done = driveStraightLoop(DRIVE_SPEED, 24, -90);
-            if (taskRunTimeout.seconds() >= 10) {
+            if (taskRunTimeout.seconds() >= 7) {
                 // timeout, bad! should not happen at all
                 resetDriveLoops();
                 setMissionTo(Mission.EXIT);
@@ -988,12 +975,13 @@ public class RobotAutonomousDrive extends LinearOpMode
         }
     }
 
-    private void RedRight_Center(int isRedCoff)
+
+    private void RedRight_Center(int isRedCoff) // == Blue Left
     {
         if (currentTaskID == 0) {
             boolean done = driveStraightLoop(DRIVE_SPEED, 24, 0.0);
 
-            if (taskRunTimeout.seconds() >= 10)
+            if (taskRunTimeout.seconds() >= 7)
             {
                 // timeout, bad! should not happen at all
                 resetDriveLoops();
@@ -1008,7 +996,7 @@ public class RobotAutonomousDrive extends LinearOpMode
         {
             boolean done = driveStraightLoop(DRIVE_SPEED, -20, 0.0);
 
-            if (taskRunTimeout.seconds() >= 10)
+            if (taskRunTimeout.seconds() >= 7)
             {
                 // timeout, bad! should not happen at all
                 resetDriveLoops();
@@ -1021,7 +1009,7 @@ public class RobotAutonomousDrive extends LinearOpMode
         }
         else if(currentTaskID == 2)
         {
-            boolean done = turnToHeadingLoop(TURN_SPEED, -90);
+            boolean done = turnToHeadingLoop(TURN_SPEED, -90*isRedCoff);
             if(taskRunTimeout.seconds() >= 5)
             {
                 // timeout, bad! should not happen at all
@@ -1035,8 +1023,8 @@ public class RobotAutonomousDrive extends LinearOpMode
         }
         else if (currentTaskID == 3)
         {
-            boolean done = driveStraightLoop(DRIVE_SPEED, 40, -90);
-            if (taskRunTimeout.seconds() >= 10)
+            boolean done = driveStraightLoop(DRIVE_SPEED, 40, -90*isRedCoff);
+            if (taskRunTimeout.seconds() >= 8)
             {
                 // timeout, bad! should not happen at all
                 resetDriveLoops();
@@ -1048,6 +1036,7 @@ public class RobotAutonomousDrive extends LinearOpMode
             }
         }
     }
+
 
     boolean targetFound = false;    // Set to true when an AprilTag target is detected
     double drive = 0;        // Desired forward power/speed (-1 to +1)
@@ -1067,7 +1056,7 @@ public class RobotAutonomousDrive extends LinearOpMode
     final double MAX_AUTO_STRAFE= 0.5;   //  Clip the approach speed to this max value (adjust for your robot)
     final double MAX_AUTO_TURN  = 0.3;   //  Clip the turn speed to this max value (adjust for your robot)
 
-    private void spotB(int rotatorP, boolean isD)
+    private void spotB()
     {
         if (currentTaskID == 0)
         {
@@ -1084,7 +1073,7 @@ public class RobotAutonomousDrive extends LinearOpMode
         }
         else if (currentTaskID == 1)
         {
-            if (taskRunTimeout.seconds() > 5)
+            if (taskRunTimeout.seconds() > 5) // todo debug
             {
                 setTaskTo(2);
             }
@@ -1131,10 +1120,8 @@ public class RobotAutonomousDrive extends LinearOpMode
                 telemetry.addData("Yaw", "%3.0f degrees", desiredTag.ftcPose.yaw);
             }
 
-            // If Left Bumper is being pressed, AND we have found the desired target, Drive to target Automatically .
             if (targetFound)
             {
-
                 // Determine heading, range and Yaw (tag image rotation) error so we can use them to control the robot automatically.
                 double rangeError = (desiredTag.ftcPose.range - DESIRED_DISTANCE);
                 double headingError = desiredTag.ftcPose.bearing;
@@ -1183,75 +1170,6 @@ public class RobotAutonomousDrive extends LinearOpMode
         }
     }
 
-    int targetPositionLifter;
-    int targetPositionArm;
-    private final PID armPID = new PID(0.0035,0,0.025,0.1, 0.5, -0.2);
-    
-    //-1300->0->1300: right down->horizontal->right up
-    boolean linkArmWrist = false;
-    private void armMotorRunnable()
-    {
-//        armPID.setSetpoint(targetPositionArm);
-//        armMotor.setTargetPosition(targetPositionArm);
-//        armMotor.setPower(armPID.update(armMotor.getCurrentPosition(),
-//                getFeedForward(armPID.getF())));
-//
-//        if (!Util.inRange(armMotor.getCurrentPosition(),
-//                Constants.ARM_POSITION_LOWEST, Constants.ARM_POSITION_HIGHEST))
-//        {
-//            targetPositionArm = (int)Util.trim(targetPositionArm,
-//                    Constants.ARM_POSITION_LOWEST, Constants.ARM_POSITION_HIGHEST);
-//            armMotor.setPower(0);
-//        }
-//
-//        //arm:0, wrist 0
-//        //arm 2200, wrist 1
-//        if(linkArmWrist)
-//        {
-//            double ws = Util.trim((double) armMotor.getCurrentPosition() / 2400.0, 0, 1);
-//            wristServo.setPosition(ws);
-//        }
-    }
-    
-    double arb_feedForward = 0;
-    private double getFeedForward(double horizontalHoldoutput)
-    {
-//        double offset = 0; // angle degree
-//        double sensorPos = armMotor.getCurrentPosition();
-//        double angle = ((sensorPos-Constants.armHorizontal) / Constants.armRightUp) * 180 + offset;
-//
-//        double theta = Math.toRadians(angle);
-//        double gravityCompensation = Math.cos(theta);
-//        arb_feedForward = gravityCompensation * horizontalHoldoutput;
-        return arb_feedForward;
-    }
-    
-    int targetPositionRotator = 0;
-    //ElapsedTime rotatorMotorTimer = new ElapsedTime();
-    //int rotatorTimeoutMillsecs = 2000;
-    //double rotatorMovePower = 0.2;
-    private final PID rotatorPID = new PID(0.005,0,0,0, 0.4, -0.4);
-    //private final int rotatorPositionMax = 700; // hits the ext-hub
-    //private final int rotatorPositionMin = -600;
-    private void rotatorMotorRunnable()
-    {
-//        rotatorPID.setSetpoint(targetPositionRotator);
-//        rotatorMotor.setTargetPosition(targetPositionRotator);
-//        rotatorMotor.setPower(rotatorPID.update(rotatorMotor.getCurrentPosition()));
-//
-//        if (!Util.inRange(rotatorMotor.getCurrentPosition(),
-//                Constants.ROTATOR_POSITION_MOST_RIGHT, Constants.ROTATOR_POSITION_MOST_LEFT))
-//        {
-//            targetPositionRotator = (int)Util.trim(targetPositionRotator,
-//                    Constants.ROTATOR_POSITION_MOST_RIGHT, Constants.ROTATOR_POSITION_MOST_LEFT);
-//            rotatorMotor.setPower(0);
-//        }
-    }
-    
-    private void lifterMotorRunnable()
-    {
-        //lifterMotor.setPower(0);
-    }
     
     /*
      * ====================================================================================================
@@ -1597,6 +1515,32 @@ public class RobotAutonomousDrive extends LinearOpMode
         frontRight.setPower(rightSpeed);
         frontLeft.setPower(leftSpeed);
     }
+
+    public void moveRobot(double x, double y, double yaw) {
+        // Calculate wheel powers.
+        double leftFrontPower    =  x -y -yaw;
+        double rightFrontPower   =  x +y +yaw;
+        double leftBackPower     =  x +y -yaw;
+        double rightBackPower    =  x -y +yaw;
+
+        // Normalize wheel powers to be less than 1.0
+        double max = Math.max(Math.abs(leftFrontPower), Math.abs(rightFrontPower));
+        max = Math.max(max, Math.abs(leftBackPower));
+        max = Math.max(max, Math.abs(rightBackPower));
+
+        if (max > 1.0) {
+            leftFrontPower /= max;
+            rightFrontPower /= max;
+            leftBackPower /= max;
+            rightBackPower /= max;
+        }
+
+        // Send powers to the wheels.
+        this.frontLeft.setPower(leftFrontPower);
+        this.frontRight.setPower(rightFrontPower);
+        this.backLeft.setPower(leftBackPower);
+        this.backRight.setPower(rightBackPower);
+    }
     
     /**
      * read the raw (un-offset Gyro heading) directly from the IMU
@@ -1739,206 +1683,9 @@ public class RobotAutonomousDrive extends LinearOpMode
         );
         Log.println(Log.INFO,"Status", a);
     }
-    
-    final double TRIGGER_THRESHOLD = 0.75;     // Squeeze more than 3/4 to get rumble.
-    private boolean eyeServoRightLock = false;
-    private boolean eyeServoLeftLock = false;
-    //private boolean wristServoRightLock = false;
-    //private boolean wristServoLeftLock = false;
-    private boolean palmServoLeftLock = false;
-    private boolean palmServoRightLock = false;
-    private boolean lifterHighLock = false;
-    private boolean lifterLowLock = false;
-    //private boolean leftTriggerLock = false;
-    //private boolean armPositionLock = false;
-    ElapsedTime runtimeManual = new ElapsedTime();
-    
-    private void TuningHandMotors(Gamepad gamepad)
-    {
-        //Eye Servo
-        if (gamepad.left_trigger > TRIGGER_THRESHOLD)
-        {
-            if (!eyeServoRightLock)
-            {
-                eyeServoRightLock = true;  // Hold off any more triggers
-                //eyeServo.setPosition(eyeServo.getPosition() + 0.02);
-            }
-        }
-        else
-        {
-            eyeServoRightLock = false;  // We can trigger again now.
-        }
-        
-        if (gamepad.right_trigger > TRIGGER_THRESHOLD)
-        {
-            if (!eyeServoLeftLock)
-            {
-                eyeServoLeftLock = true;  // Hold off any more triggers
-                //eyeServo.setPosition(eyeServo.getPosition() - 0.02);
-            }
-        }
-        else
-        {
-            eyeServoLeftLock = false;  // We can trigger again now.
-        }
-    
-        // Elbow servo
-        if (gamepad.left_stick_y > 0.3)
-        {
-            //elbowServo.setPosition(elbowServo.getPosition() + 0.01);
-        }
-        if (gamepad.left_stick_y < -0.3)
-        {
-            //elbowServo.setPosition(elbowServo.getPosition() - 0.05);
-        }
-        
-        // Wrist servo
-        if (gamepad.right_stick_y > 0.3)
-        {
-            //wristServo.setPosition(wristServo.getPosition() + 0.01);
-        }
-        if (gamepad.right_stick_y < -0.3)
-        {
-            //wristServo.setPosition(wristServo.getPosition() - 0.05);
-        }
-        
-        // Palm servo
-        if (gamepad.b)
-        {
-            if (!palmServoLeftLock)
-            {
-                palmServoLeftLock = true;
-                //palmServo.setPosition(palmServo.getPosition() - 0.05);
-            }
-        }
-        else
-        {
-            palmServoLeftLock = false;
-        }
-        if (gamepad.x)
-        {
-            if (!palmServoRightLock)
-            {
-                palmServoRightLock = true;
-                //palmServo.setPosition(palmServo.getPosition() + 0.05);
-            }
-        }
-        else
-        {
-            palmServoRightLock = false;
-        }
-        
-        // finger servo
-        if (gamepad.y)
-        {
-            //fingerServo.setPosition(1.);//open
-        }
-        if (gamepad.a)
-        {
-            //fingerServo.setPosition(0.1);// close
-        }
-        
-        // arm motor
-        /*double updown = -1 * Util.applyDeadband(gamepad.left_stick_y, 0.1);
-        if( updown > 0)
-            updown = updown * 60;
-        else
-            updown = updown * 40;
-        targetPositionArm += updown;*/
-        if(gamepad.dpad_up)
-        {
-            targetPositionArm += 10;
-        }
-        else if(gamepad.dpad_down)
-        {
-            targetPositionArm -= 10;
-        }
-        
-        // rotator motor
-        else if (gamepad.dpad_left)
-        {
-            targetPositionRotator += 10;
-        }
-        else if (gamepad.dpad_right)
-        {
-            targetPositionRotator -= 10;
-        }
-        
-        //lifter motor
-        if (gamepad.left_stick_button)
-        {//up
-            if (!lifterHighLock)
-            {
-                lifterHighLock = true;  // Hold off any more triggers
-//                if (lifterMotor.getCurrentPosition() < 2000)
-//                { // max high limit
-//                    lifterMotor.setTargetPosition(lifterMotor.getCurrentPosition() + 100);
-//                    lifterMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-//                    runtimeManual.reset();
-//                    lifterMotor.setPower(0.2);
-//                    while ((runtimeManual.seconds() < 1) &&
-//                            (lifterMotor.isBusy()))
-//                    {
-//                    }
-//                }
-                //gamepad1.rumble(0.9, 0, 200);  // 200 mSec burst on left motor.
-            }
-        }
-        else
-        {
-            lifterHighLock = false;  // We can trigger again now.
-        }
-        
-        if (gamepad.right_stick_button)
-        {//down
-            if (!lifterLowLock)
-            {
-                lifterLowLock = true;
-//                if (lifterMotor.getCurrentPosition() > 100) // min low limit
-//                {
-//                    lifterMotor.setTargetPosition(lifterMotor.getCurrentPosition() - 100);
-//                    lifterMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-//                    runtimeManual.reset();
-//                    lifterMotor.setPower(0.2);
-//                    while ((runtimeManual.seconds() < 1) &&
-//                            (lifterMotor.isBusy()))
-//                    {
-//                    }
-//                }
-            }
-        }
-        else
-        {
-            lifterLowLock = false;
-        }
-    }
 
 
-    public void moveRobot(double x, double y, double yaw) {
-        // Calculate wheel powers.
-        double leftFrontPower    =  x -y -yaw;
-        double rightFrontPower   =  x +y +yaw;
-        double leftBackPower     =  x +y -yaw;
-        double rightBackPower    =  x -y +yaw;
-
-        // Normalize wheel powers to be less than 1.0
-        double max = Math.max(Math.abs(leftFrontPower), Math.abs(rightFrontPower));
-        max = Math.max(max, Math.abs(leftBackPower));
-        max = Math.max(max, Math.abs(rightBackPower));
-
-        if (max > 1.0) {
-            leftFrontPower /= max;
-            rightFrontPower /= max;
-            leftBackPower /= max;
-            rightBackPower /= max;
-        }
-
-        // Send powers to the wheels.
-        this.frontLeft.setPower(leftFrontPower);
-        this.frontRight.setPower(rightFrontPower);
-        this.backLeft.setPower(leftBackPower);
-        this.backRight.setPower(rightBackPower);
-    }
+    /****** AprilTag *********/
 
     private static final int DESIRED_TAG_ID = -1;     // Choose the tag you want to approach or set to -1 for ANY tag.
     private VisionPortal visionPortal;               // Used to manage the video source.
