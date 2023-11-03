@@ -241,6 +241,7 @@ public class EyeAll extends Subsystem
     public static class AnalyzedObject
     {
         public TargetObject name = TargetObject.NONE;
+        public boolean found = false;
         public double angle_avg = -90;
         public int center_x_avg = -1;
         public int center_y_avg = -1;
@@ -398,6 +399,7 @@ public class EyeAll extends Subsystem
         countLEFT = 0;
         countFRONT = 0;
         countBACK = 0;*/
+        objectFoundInfo.found = false;
         objectFoundInfo.angle_avg = -90;
         objectFoundInfo.center_x_avg = -1;
         objectFoundInfo.center_y_avg = -1;
@@ -419,6 +421,13 @@ public class EyeAll extends Subsystem
             doneInitCone = true;
             resetCount();
         }
+
+        if(!objectFoundInfo.found)
+        {
+            objectFoundInfo.lrPosition = ObjectLocation.UNKNOWN;
+        }
+        else {} // TODO pls fix this bug
+
         countTotalLR++;
 
         if( objectFoundInfo.center_x_avg > 0) {
@@ -938,7 +947,16 @@ public class EyeAll extends Subsystem
             input.copyTo(contoursOnPlainImageMat);
             Imgproc.drawContours(contoursOnPlainImageMat, outputContours, -1, BLUE,
                     CONTOUR_LINE_THICKNESS, 8);
-    
+
+            if(outputContours.size() == 0)
+            {
+                objectFoundInfo.found = false;
+            }
+            else
+            {
+                objectFoundInfo.found = true;
+            }
+
             return outputContours;
         }
 
