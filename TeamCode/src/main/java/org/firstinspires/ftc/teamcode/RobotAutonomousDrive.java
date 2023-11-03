@@ -223,6 +223,16 @@ public class RobotAutonomousDrive extends LinearOpMode
         double yRotation = 0;  // enter the desired Y rotation angle here.
         double zRotation = 0;  // enter the desired Z rotation angle here.
 
+        /* The next two lines define Hub orientation.
+         * The Default Orientation (shown) is when a hub is mounted horizontally with the printed logo pointing UP and the USB port pointing FORWARD.
+         *
+         * To Do:  EDIT these two lines to match YOUR mounting configuration.
+         */
+//        RevHubOrientationOnRobot.LogoFacingDirection logoDirection = RevHubOrientationOnRobot.LogoFacingDirection.UP;
+//        RevHubOrientationOnRobot.UsbFacingDirection  usbDirection  = RevHubOrientationOnRobot.UsbFacingDirection.FORWARD;
+//        RevHubOrientationOnRobot orientationOnRobot = new RevHubOrientationOnRobot(logoDirection, usbDirection);
+
+
         Orientation hubRotation = xyzOrientation(xRotation, yRotation, zRotation);
         RevHubOrientationOnRobot orientationOnRobot = new RevHubOrientationOnRobot(hubRotation);
         imu.initialize(new IMU.Parameters(orientationOnRobot));
@@ -268,8 +278,16 @@ public class RobotAutonomousDrive extends LinearOpMode
 
         composeTelemetry();
         telemetry.update();
-
         waitForStart();
+
+//        while (opModeInInit()) {
+//            EyeOp();
+//            composeTelemetry();
+//            telemetry.update();
+//            sleep(100);  // Pause to display last telemetry message.
+//        }
+
+
         setMissionTo(Mission.SPOT_A);
 
         while(opModeIsActive())
@@ -367,30 +385,30 @@ public class RobotAutonomousDrive extends LinearOpMode
                     {
                         if( propsLocation == EyeAll.ObjectLocation.ON_CAMERA_LEFT)
                         {
-                            RedLeft_Left();
+                            RedLeft_Left(1);
                         }
                         else if( propsLocation == EyeAll.ObjectLocation.ON_CAMERA_RIGHT)
                         {
-                            RedLeft_Right();
+                            RedLeft_Right(1);
                         }
                         else
                         {
-                            RedLeft_Center();
+                            RedLeft_Center(1);
                         }
                     }
                     else //if (allianceConfig.Location.equals(AllianceConfig.RIGHT) ) RED
                     {
                         if( propsLocation == EyeAll.ObjectLocation.ON_CAMERA_LEFT)
                         {
-                            RedRight_Left();
+                            RedRight_Left(1);
                         }
                         else if( propsLocation == EyeAll.ObjectLocation.ON_CAMERA_RIGHT)
                         {
-                            RedRight_Right();
+                            RedRight_Right(1);
                         }
                         else
                         {
-                            RedRight_Center();
+                            RedRight_Center(1);
                         }
                     }
                 }
@@ -400,30 +418,36 @@ public class RobotAutonomousDrive extends LinearOpMode
                     {
                         if( propsLocation == EyeAll.ObjectLocation.ON_CAMERA_LEFT)
                         {
-                            RedRight_Left();
+                            // Blue Left ==
+                            RedRight_Left(-1);
                         }
                         else if( propsLocation == EyeAll.ObjectLocation.ON_CAMERA_RIGHT)
                         {
-                            RedRight_Left();
+                            // Blue Left ==
+                            RedRight_Right(-1);
                         }
                         else
                         {
-                            RedRight_Left();
+                            // Blue Left ==
+                            RedRight_Center(-1);
                         }
                     }
                     else //if (allianceConfig.Location.equals(AllianceConfig.RIGHT) ) BLUE
                     {
                         if( propsLocation == EyeAll.ObjectLocation.ON_CAMERA_LEFT)
                         {
-                            RedRight_Left();
+                            // Blue Right ==
+                            RedLeft_Left(-1);
                         }
                         else if( propsLocation == EyeAll.ObjectLocation.ON_CAMERA_RIGHT)
                         {
-                            RedRight_Left();
+                            // Blue Right ==
+                            RedLeft_Right(-1);
                         }
                         else
                         {
-                            RedRight_Left();
+                            // Blue Right ==
+                            RedLeft_Center(-1);
                         }
                     }
 
@@ -483,11 +507,13 @@ public class RobotAutonomousDrive extends LinearOpMode
             if(propsLocation == EyeAll.ObjectLocation.ON_CAMERA_LEFT ||
             propsLocation == EyeAll.ObjectLocation.ON_CAMERA_RIGHT ||
             propsLocation == EyeAll.ObjectLocation.CENTER)
-                setMissionTo(Mission.MOVE_A2B);
+            {
+                setTaskTo(1);
+            }
             else if (taskRunTimeout.seconds() > 4)
             {
                 // timeout, camera problems...
-                setMissionTo(Mission.MOVE_A2B);
+                setTaskTo(1);
             }
             else
             {
@@ -506,7 +532,7 @@ public class RobotAutonomousDrive extends LinearOpMode
     }
     
 
-    private void RedLeft_Left()
+    private void RedLeft_Left(int isRedCoff)
     {
         if (currentTaskID == 0) {
             boolean done = driveStraightLoop(DRIVE_SPEED, 24, 0.0);
@@ -602,12 +628,12 @@ public class RobotAutonomousDrive extends LinearOpMode
                 resetDriveLoops();
                 setMissionTo(Mission.EXIT);
             } else if (done) {
-                setMissionTo(Mission.EXIT); // todo
+                setMissionTo(Mission.EXIT); // todo spot_b
             }
         }
 }
 
-    private void RedLeft_Right()
+    private void RedLeft_Right(int isRedCoff)
     {
         if (currentTaskID == 0) {
             boolean done = driveStraightLoop(DRIVE_SPEED, 24, 0.0);
@@ -689,12 +715,12 @@ public class RobotAutonomousDrive extends LinearOpMode
                 resetDriveLoops();
                 setMissionTo(Mission.EXIT);
             } else if (done) {
-                setMissionTo(Mission.EXIT);
+                setMissionTo(Mission.EXIT); // todo spot_b
             }
         }
     }
 
-    private void RedLeft_Center()
+    private void RedLeft_Center(int isRedCoff)
     {
         if (currentTaskID == 0) {
             boolean done = driveStraightLoop(DRIVE_SPEED, 24, 0.0);
@@ -780,17 +806,17 @@ public class RobotAutonomousDrive extends LinearOpMode
             }
             else if (done)
             {
-                setMissionTo(Mission.EXIT);
+                setMissionTo(Mission.EXIT); // todo spot_b
             }
         }
     }
 
-    private void RedRight_Left()
+    private void RedRight_Left(int isRedCoff)
     {
         if (currentTaskID == 0) {
             boolean done = driveStraightLoop(DRIVE_SPEED, 24, 0.0);
 
-            if (taskRunTimeout.seconds() >= 10)
+            if (taskRunTimeout.seconds() >= 5)
             {
                 // timeout, bad! should not happen at all
                 resetDriveLoops();
@@ -875,7 +901,7 @@ public class RobotAutonomousDrive extends LinearOpMode
         }
     }
 
-    private void RedRight_Right()
+    private void RedRight_Right(int isRedCoff)
     {
         if (currentTaskID == 0) {
             boolean done = driveStraightLoop(DRIVE_SPEED, 24, 0.0);
@@ -962,7 +988,7 @@ public class RobotAutonomousDrive extends LinearOpMode
         }
     }
 
-    private void RedRight_Center()
+    private void RedRight_Center(int isRedCoff)
     {
         if (currentTaskID == 0) {
             boolean done = driveStraightLoop(DRIVE_SPEED, 24, 0.0);
@@ -1041,8 +1067,10 @@ public class RobotAutonomousDrive extends LinearOpMode
     final double MAX_AUTO_STRAFE= 0.5;   //  Clip the approach speed to this max value (adjust for your robot)
     final double MAX_AUTO_TURN  = 0.3;   //  Clip the turn speed to this max value (adjust for your robot)
 
-    private void spotB(int rotatorP, boolean isD) {
-        if (currentTaskID == 0) {
+    private void spotB(int rotatorP, boolean isD)
+    {
+        if (currentTaskID == 0)
+        {
             targetFound = false;    // Set to true when an AprilTag target is detected
             drive = 0;        // Desired forward power/speed (-1 to +1)
             strafe = 0;        // Desired strafe power/speed (-1 to +1)
@@ -1053,44 +1081,59 @@ public class RobotAutonomousDrive extends LinearOpMode
             setManualExposure(6, 250);  // Use low exposure time to reduce motion blur
 
             setTaskTo(1);
-        } else if (currentTaskID == 1) {
+        }
+        else if (currentTaskID == 1)
+        {
+            if (taskRunTimeout.seconds() > 5)
+            {
+                setTaskTo(2);
+            }
+        }
+        else if (currentTaskID == 2)
+        {
             targetFound = false;
             desiredTag = null;
 
             // Step through the list of detected tags and look for a matching tag
             List<AprilTagDetection> currentDetections = aprilTag.getDetections();
-            for (AprilTagDetection detection : currentDetections) {
+            for (AprilTagDetection detection : currentDetections)
+            {
                 // Look to see if we have size info on this tag.
                 if (detection.metadata != null) {
                     //  Check to see if we want to track towards this tag.
-                    if ((DESIRED_TAG_ID < 0) || (detection.id == DESIRED_TAG_ID)) {
+                    if ((DESIRED_TAG_ID < 0) || (detection.id == DESIRED_TAG_ID))
+                    {
                         // Yes, we want to use this tag.
                         targetFound = true;
                         desiredTag = detection;
                         break;  // don't look any further.
-                    } else {
+                    }
+                    else
+                    {
                         // This tag is in the library, but we do not want to track it right now.
                         telemetry.addData("Skipping", "Tag ID %d is not desired", detection.id);
                     }
-                } else {
+                }
+                else
+                {
                     // This tag is NOT in the library, so we don't have enough information to track to it.
                     telemetry.addData("Unknown", "Tag ID %d is not in TagLibrary", detection.id);
                 }
             }
 
             // Tell the driver what we see, and what to do.
-            if (targetFound) {
+            if (targetFound)
+            {
                 telemetry.addData("\n>", "HOLD Left-Bumper to Drive to Target\n");
                 telemetry.addData("Found", "ID %d (%s)", desiredTag.id, desiredTag.metadata.name);
                 telemetry.addData("Range", "%5.1f inches", desiredTag.ftcPose.range);
                 telemetry.addData("Bearing", "%3.0f degrees", desiredTag.ftcPose.bearing);
                 telemetry.addData("Yaw", "%3.0f degrees", desiredTag.ftcPose.yaw);
-            } else {
-                telemetry.addData("\n>", "Drive using joysticks to find valid target\n");
             }
 
             // If Left Bumper is being pressed, AND we have found the desired target, Drive to target Automatically .
-            if (targetFound) {
+            if (targetFound)
+            {
 
                 // Determine heading, range and Yaw (tag image rotation) error so we can use them to control the robot automatically.
                 double rangeError = (desiredTag.ftcPose.range - DESIRED_DISTANCE);
@@ -1106,7 +1149,8 @@ public class RobotAutonomousDrive extends LinearOpMode
             }
             telemetry.update();
 
-            if (taskRunTimeout.seconds() >= 10) {
+            if (taskRunTimeout.seconds() >= 7)
+            {
                 // timeout, bad! should not happen at all
                 drive = 0;        // Desired forward power/speed (-1 to +1)
                 strafe = 0;        // Desired strafe power/speed (-1 to +1)
@@ -1114,19 +1158,28 @@ public class RobotAutonomousDrive extends LinearOpMode
 
                 resetDriveLoops();
                 setMissionTo(Mission.EXIT);
-            } else if (targetFound &&
+            }
+            else if (targetFound &&
                     Util.inRange(drive, -.1, .1) &&
                     Util.inRange(turn, -.1, .1) &&
-                    Util.inRange(strafe, -.1, .1)) {
+                    Util.inRange(strafe, -.1, .1))
+            {
                 drive = 0;        // Desired forward power/speed (-1 to +1)
                 strafe = 0;        // Desired strafe power/speed (-1 to +1)
                 turn = 0;        // Desired turning power/speed (-1 to +1)
 
-                setMissionTo(Mission.EXIT);
+                setTaskTo(3);
             }
 
             // Apply desired axes motions to the drivetrain.
             moveRobot(drive, strafe, turn);
+        }
+        else if (currentTaskID == 3)
+        {
+            if (taskRunTimeout.seconds() > 2)
+            {
+                setMissionTo(Mission.EXIT);
+            }
         }
     }
 
