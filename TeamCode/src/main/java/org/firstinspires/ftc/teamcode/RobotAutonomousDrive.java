@@ -183,7 +183,7 @@ public class RobotAutonomousDrive extends LinearOpMode
     public void runOpMode() throws InterruptedException {
         autoTimer30Sec.reset();
 
-        eye = new EyeAll(hardwareMap); // comment it out if not camera installed
+        //eye = new EyeAll(hardwareMap); // comment it out if not camera installed
 
         if(eye!= null)
         {
@@ -224,12 +224,12 @@ public class RobotAutonomousDrive extends LinearOpMode
          *
          * To Do:  EDIT these two lines to match YOUR mounting configuration.
          */
-//        RevHubOrientationOnRobot.LogoFacingDirection logoDirection = RevHubOrientationOnRobot.LogoFacingDirection.UP;
-//        RevHubOrientationOnRobot.UsbFacingDirection  usbDirection  = RevHubOrientationOnRobot.UsbFacingDirection.FORWARD;
-//        RevHubOrientationOnRobot orientationOnRobot = new RevHubOrientationOnRobot(logoDirection, usbDirection);
+        RevHubOrientationOnRobot.LogoFacingDirection logoDirection = RevHubOrientationOnRobot.LogoFacingDirection.FORWARD;
+        RevHubOrientationOnRobot.UsbFacingDirection  usbDirection  = RevHubOrientationOnRobot.UsbFacingDirection.UP;
+        RevHubOrientationOnRobot orientationOnRobot = new RevHubOrientationOnRobot(logoDirection, usbDirection);
 
-        Orientation hubRotation = xyzOrientation(xRotation, yRotation, zRotation);
-        RevHubOrientationOnRobot orientationOnRobot = new RevHubOrientationOnRobot(hubRotation);
+        //Orientation hubRotation = xyzOrientation(xRotation, yRotation, zRotation);
+        //RevHubOrientationOnRobot orientationOnRobot = new RevHubOrientationOnRobot(hubRotation);
         imu.initialize(new IMU.Parameters(orientationOnRobot));
         // Reset Yaw
         imu.resetYaw();
@@ -396,78 +396,84 @@ public class RobotAutonomousDrive extends LinearOpMode
                     setMissionTo(Mission.EXIT);
                     break;
                 }
-                if (allianceConfig.Alliance.equals(AllianceConfig.RED) )
+                if(allianceConfig.PathRoute.equals("0"))
                 {
-                    if(allianceConfig.Location.equals(AllianceConfig.LEFT) )
+                    if (allianceConfig.Alliance.equals(AllianceConfig.RED))
                     {
-                        if( propsLocation == EyeAll.ObjectLocation.ON_CAMERA_LEFT)
+                        if (allianceConfig.Location.equals(AllianceConfig.LEFT))
                         {
-                            RedLeft_Left(1);
-                        }
-                        else if( propsLocation == EyeAll.ObjectLocation.CENTER)
+                            RouteLong(1);
+
+                        } else //if (allianceConfig.Location.equals(AllianceConfig.RIGHT) ) RED
                         {
-                            RedLeft_Center(1);
+                            RouteShort(1);
                         }
-                        else //ON_CAMERA_RIGHT as the default
-                        {
-                            RedLeft_Right(1);
-                        }
-                    }
-                    else //if (allianceConfig.Location.equals(AllianceConfig.RIGHT) ) RED
+                    } else //if (allianceConfig.Alliance.equals(AllianceConfig.BLUE) )
                     {
-                        if( propsLocation == EyeAll.ObjectLocation.ON_CAMERA_LEFT)
+                        if (allianceConfig.Location.equals(AllianceConfig.LEFT))
                         {
-                            RedRight_Left(1);
+                            // Blue Left ==
+                            RouteShort(-1);
                         }
-                        else if( propsLocation == EyeAll.ObjectLocation.ON_CAMERA_RIGHT)
+                        else //if (allianceConfig.Location.equals(AllianceConfig.RIGHT) ) BLUE
                         {
-                            RedRight_Right(1);
-                        }
-                        else //CENTER as the default
-                        {
-                            RedRight_Center(1);
+                            // Blue Right ==
+                            RouteLong(-1);
                         }
                     }
                 }
-                else //if (allianceConfig.Alliance.equals(AllianceConfig.BLUE) )
-                {
-                    if(allianceConfig.Location.equals(AllianceConfig.LEFT) )
+                else {
+                    if (allianceConfig.Alliance.equals(AllianceConfig.RED)) {
+                        if (allianceConfig.Location.equals(AllianceConfig.LEFT)) {
+                            if (propsLocation == EyeAll.ObjectLocation.ON_CAMERA_LEFT) {
+                                RedLeft_Left(1);
+                            } else if (propsLocation == EyeAll.ObjectLocation.CENTER) {
+                                RedLeft_Center(1);
+                            } else //ON_CAMERA_RIGHT as the default
+                            {
+                                RedLeft_Right(1);
+                            }
+                        } else //if (allianceConfig.Location.equals(AllianceConfig.RIGHT) ) RED
+                        {
+                            if (propsLocation == EyeAll.ObjectLocation.ON_CAMERA_LEFT) {
+                                RedRight_Left(1);
+                            } else if (propsLocation == EyeAll.ObjectLocation.ON_CAMERA_RIGHT) {
+                                RedRight_Right(1);
+                            } else //CENTER as the default
+                            {
+                                RedRight_Center(1);
+                            }
+                        }
+                    } else //if (allianceConfig.Alliance.equals(AllianceConfig.BLUE) )
                     {
-                        if( propsLocation == EyeAll.ObjectLocation.ON_CAMERA_LEFT)
+                        if (allianceConfig.Location.equals(AllianceConfig.LEFT)) {
+                            if (propsLocation == EyeAll.ObjectLocation.ON_CAMERA_LEFT) {
+                                // Blue Left ==
+                                RedRight_Left(-1);
+                            } else if (propsLocation == EyeAll.ObjectLocation.ON_CAMERA_RIGHT) {
+                                // Blue Left ==
+                                RedRight_Right(-1);
+                            } else //CENTER as the default
+                            {
+                                // Blue Left ==
+                                RedRight_Center(-1);
+                            }
+                        } else //if (allianceConfig.Location.equals(AllianceConfig.RIGHT) ) BLUE
                         {
-                            // Blue Left ==
-                            RedRight_Left(-1);
+                            if (propsLocation == EyeAll.ObjectLocation.ON_CAMERA_LEFT) {
+                                // Blue Right ==
+                                RedLeft_Left(-1);
+                            } else if (propsLocation == EyeAll.ObjectLocation.CENTER) {
+                                // Blue Right ==
+                                RedLeft_Center(-1);
+                            } else //ON_CAMERA_RIGHT as the default
+                            {
+                                // Blue Right ==
+                                RedLeft_Right(-1);
+                            }
                         }
-                        else if( propsLocation == EyeAll.ObjectLocation.ON_CAMERA_RIGHT)
-                        {
-                            // Blue Left ==
-                            RedRight_Right(-1);
-                        }
-                        else //CENTER as the default
-                        {
-                            // Blue Left ==
-                            RedRight_Center(-1);
-                        }
-                    }
-                    else //if (allianceConfig.Location.equals(AllianceConfig.RIGHT) ) BLUE
-                    {
-                        if( propsLocation == EyeAll.ObjectLocation.ON_CAMERA_LEFT)
-                        {
-                            // Blue Right ==
-                            RedLeft_Left(-1);
-                        }
-                        else if( propsLocation == EyeAll.ObjectLocation.CENTER)
-                        {
-                            // Blue Right ==
-                            RedLeft_Center(-1);
-                        }
-                        else //ON_CAMERA_RIGHT as the default
-                        {
-                            // Blue Right ==
-                            RedLeft_Right(-1);
-                        }
-                    }
 
+                    }
                 }
                 break;
 
@@ -514,6 +520,53 @@ public class RobotAutonomousDrive extends LinearOpMode
 
             setMissionTo(Mission.MOVE_A2B);
         }
+    }
+
+    private void RouteLong(int isRedCoff)
+    {
+        if (currentTaskID == 0) {
+            boolean done = driveStraightLoop(DRIVE_SPEED, 48, 0.0);
+
+            if (taskRunTimeout.seconds() >= 15)
+            {
+                // timeout, bad! should not happen at all
+                resetDriveLoops();
+                setMissionTo(Mission.EXIT);
+            }
+            else if (done)
+            {
+                setTaskTo(1);
+            }
+        }
+        else if (currentTaskID == 1)
+        {
+            boolean done = turnToHeadingLoop(TURN_SPEED, -90 *isRedCoff);
+            if(taskRunTimeout.seconds() >= 6)
+            {
+                // timeout, bad! should not happen at all
+                resetDriveLoops();
+                setMissionTo(Mission.EXIT);
+            }
+            else if( done )
+            {
+                setTaskTo(2);
+            }
+        }
+        else if (currentTaskID == 2) {
+            boolean done = driveStraightLoop(DRIVE_SPEED, 60, -90*isRedCoff);
+            if (taskRunTimeout.seconds() >= 15) {
+                // timeout, bad! should not happen at all
+                resetDriveLoops();
+                setMissionTo(Mission.EXIT);
+            } else if (done) {
+                setMissionTo(Mission.EXIT); // todo spot_b
+            }
+        }
+    }
+
+    private void RouteShort(int isRedCoff)
+    {
+        
     }
 
     private void RedLeft_Left(int isRedCoff)
@@ -580,7 +633,7 @@ public class RobotAutonomousDrive extends LinearOpMode
         {
             boolean done = driveStrafeLoop(24, DRIVE_SPEED, 9, 90);;
 
-            if (taskRunTimeout.seconds() >= 7)
+            if (taskRunTimeout.seconds() >= 8)
             {
                 // timeout, bad! should not happen at all
                 resetDriveLoops();
