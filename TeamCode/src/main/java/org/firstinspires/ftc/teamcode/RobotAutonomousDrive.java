@@ -251,6 +251,7 @@ public class RobotAutonomousDrive extends LinearOpMode
         resetHeading();
 
         AllianceConfig.ReadConfigFromFile(allianceConfig);
+        allianceConfig.PathRoute = "0"; // todo debug
 
         if(eye!= null)
             eye.OpenEyeToFindProps();
