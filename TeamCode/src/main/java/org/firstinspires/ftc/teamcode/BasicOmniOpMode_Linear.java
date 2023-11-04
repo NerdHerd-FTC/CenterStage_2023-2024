@@ -79,7 +79,7 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
     private DcMotor rightFrontDrive = null;
     private DcMotor rightBackDrive = null;
 
-    DcMotor armMotor;
+    //DcMotor armMotor;
     private PID armPID = new PID(0.0035,0,0.025,0.1, 0.5, -0.2);
     private int armTargetPosition = 0;
     private final int armPositionMax = Constants.ARM_POSITION_HIGHEST;
@@ -95,13 +95,13 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
         rightFrontDrive = hardwareMap.get(DcMotor.class, Constants.rightfrontMotor);
         rightBackDrive = hardwareMap.get(DcMotor.class, Constants.rightbackMotor);
 
-        armMotor = hardwareMap.get(DcMotor.class, Constants.armMotor);
-
-        armMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-        armMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        armMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER); //// Using our own PIDF, RUN_WITHOUT_ENCODER
-        armMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        armTargetPosition = armMotor.getCurrentPosition();
+//        armMotor = hardwareMap.get(DcMotor.class, Constants.armMotor);
+//
+//        armMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+//        armMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+//        armMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER); //// Using our own PIDF, RUN_WITHOUT_ENCODER
+//        armMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+//        armTargetPosition = armMotor.getCurrentPosition();
 
         // ########################################################################################
         // !!!            IMPORTANT Drive Information. Test your motor directions.            !!!!!
@@ -180,22 +180,22 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
             rightBackDrive.setPower(rightBackPower);
 
 
-            if(gamepad2.y)
-            {
-                armTargetPosition = 1200;
-            }
-            if(gamepad2.a)
-            {
-                armTargetPosition = -200;
-            }
-            double updown = -1 * Util.applyDeadband(gamepad2.left_stick_y, 0.1);
-            if( updown > 0)
-                updown = updown * 60;
-            else
-                updown = updown * 40;
-            armTargetPosition += updown;
-
-            runnableArmMotor();
+//            if(gamepad2.y)
+//            {
+//                armTargetPosition = 1200;
+//            }
+//            if(gamepad2.a)
+//            {
+//                armTargetPosition = -200;
+//            }
+//            double updown = -1 * Util.applyDeadband(gamepad2.left_stick_y, 0.1);
+//            if( updown > 0)
+//                updown = updown * 60;
+//            else
+//                updown = updown * 40;
+//            armTargetPosition += updown;
+//
+//            runnableArmMotor();
 
 
             // Show the elapsed game time and wheel power.
@@ -203,36 +203,36 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
             telemetry.addData("Front left/Right", "%4.2f, %4.2f", leftFrontPower, rightFrontPower);
             telemetry.addData("Back  left/Right", "%4.2f, %4.2f", leftBackPower, rightBackPower);
 
-            telemetry.addData("Arm Current: ", armMotor.getCurrentPosition());
-            telemetry.addData("Arm Target", armTargetPosition);
+            //telemetry.addData("Arm Current: ", armMotor.getCurrentPosition());
+            //telemetry.addData("Arm Target", armTargetPosition);
             telemetry.update();
         }
     }
 
-    double arb_feedForward = 0;
-    private double getFeedForward(double horizontalHoldoutput)
-    {
-        double offset = 0; // angle degree
-        double sensorPos = armMotor.getCurrentPosition();
-        double angle = ((sensorPos) / Constants.armRightUp) * 90 + offset;
-
-        double theta = Math.toRadians(angle);
-        double gravityCompensation = Math.cos(theta);
-        arb_feedForward = gravityCompensation * horizontalHoldoutput;
-        return arb_feedForward;
-    }
-
-    private void runnableArmMotor()
-    {
-        armPID.setSetpoint(armTargetPosition);
-        armMotor.setTargetPosition(armTargetPosition);
-        armMotor.setPower(armPID.update(armMotor.getCurrentPosition(),
-                getFeedForward(armPID.getF())));
-
-        if (Util.inRange(armMotor.getCurrentPosition(), armPositionMin, armPositionMax) == false)
-        {
-            armTargetPosition = (int)Util.trim(armTargetPosition, armPositionMin, armPositionMax);
-            armMotor.setPower(0);
-        }
-    }
+//    double arb_feedForward = 0;
+//    private double getFeedForward(double horizontalHoldoutput)
+//    {
+//        double offset = 0; // angle degree
+//        double sensorPos = armMotor.getCurrentPosition();
+//        double angle = ((sensorPos) / Constants.armRightUp) * 90 + offset;
+//
+//        double theta = Math.toRadians(angle);
+//        double gravityCompensation = Math.cos(theta);
+//        arb_feedForward = gravityCompensation * horizontalHoldoutput;
+//        return arb_feedForward;
+//    }
+//
+//    private void runnableArmMotor()
+//    {
+//        armPID.setSetpoint(armTargetPosition);
+//        armMotor.setTargetPosition(armTargetPosition);
+//        armMotor.setPower(armPID.update(armMotor.getCurrentPosition(),
+//                getFeedForward(armPID.getF())));
+//
+//        if (Util.inRange(armMotor.getCurrentPosition(), armPositionMin, armPositionMax) == false)
+//        {
+//            armTargetPosition = (int)Util.trim(armTargetPosition, armPositionMin, armPositionMax);
+//            armMotor.setPower(0);
+//        }
+//    }
 }

@@ -554,7 +554,7 @@ public class RobotAutonomousDrive extends LinearOpMode
             }
         }
         else if (currentTaskID == 2) {
-            boolean done = driveStraightLoop(DRIVE_SPEED, 80, -90*isRedCoff);
+            boolean done = driveStraightLoop(DRIVE_SPEED, 86, -90*isRedCoff);
             if (taskRunTimeout.seconds() >= 20) {
                 // timeout, bad! should not happen at all
                 resetDriveLoops();
