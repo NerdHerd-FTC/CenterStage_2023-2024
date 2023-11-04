@@ -30,4 +30,8 @@ public class Constants
     public static int CameraViewWidth = 640;
     public static int CameraViewHeight = 360;
     public static String frontColorSensor = null;
+    public static String armMotor = "armmotor0";
+    public static double armRightUp = 1400;
+    public static final int ARM_POSITION_HIGHEST = 1000;
+    public static final int ARM_POSITION_LOWEST = 200;
 }
