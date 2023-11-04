@@ -390,7 +390,7 @@ public class RobotAutonomousDrive extends LinearOpMode
                 spotB();
                 break;
             case MOVE_A2B:
-                if (missionRunTimer.seconds() > 25) // TODO debug
+                if (missionRunTimer.seconds() > 29) // TODO debug
                 {
                     // Error!
                     setMissionTo(Mission.EXIT);
@@ -525,7 +525,7 @@ public class RobotAutonomousDrive extends LinearOpMode
     private void RouteLong(int isRedCoff)
     {
         if (currentTaskID == 0) {
-            boolean done = driveStraightLoop(DRIVE_SPEED, 48, 0.0);
+            boolean done = driveStraightLoop(DRIVE_SPEED, 49, 0.0);
 
             if (taskRunTimeout.seconds() >= 15)
             {
@@ -553,8 +553,8 @@ public class RobotAutonomousDrive extends LinearOpMode
             }
         }
         else if (currentTaskID == 2) {
-            boolean done = driveStraightLoop(DRIVE_SPEED, 60, -90*isRedCoff);
-            if (taskRunTimeout.seconds() >= 15) {
+            boolean done = driveStraightLoop(DRIVE_SPEED, 80, -90*isRedCoff);
+            if (taskRunTimeout.seconds() >= 20) {
                 // timeout, bad! should not happen at all
                 resetDriveLoops();
                 setMissionTo(Mission.EXIT);
