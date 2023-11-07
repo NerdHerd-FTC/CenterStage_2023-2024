@@ -251,7 +251,6 @@ public class RobotAutonomousDrive extends LinearOpMode
         resetHeading();
 
         AllianceConfig.ReadConfigFromFile(allianceConfig);
-        allianceConfig.PathRoute = "0"; // todo debug
 
         if(eye!= null)
             eye.OpenEyeToFindProps();
@@ -391,7 +390,7 @@ public class RobotAutonomousDrive extends LinearOpMode
                 spotB();
                 break;
             case MOVE_A2B:
-                if (missionRunTimer.seconds() > 29) // TODO debug
+                if (missionRunTimer.seconds() > 25) // TODO debug
                 {
                     // Error!
                     setMissionTo(Mission.EXIT);
@@ -526,7 +525,7 @@ public class RobotAutonomousDrive extends LinearOpMode
     private void RouteLong(int isRedCoff)
     {
         if (currentTaskID == 0) {
-            boolean done = driveStraightLoop(DRIVE_SPEED, 49, 0.0);
+            boolean done = driveStraightLoop(DRIVE_SPEED, 48, 0.0);
 
             if (taskRunTimeout.seconds() >= 15)
             {
@@ -554,8 +553,9 @@ public class RobotAutonomousDrive extends LinearOpMode
             }
         }
         else if (currentTaskID == 2) {
-            boolean done = driveStraightLoop(DRIVE_SPEED, 86, -90*isRedCoff);
-            if (taskRunTimeout.seconds() >= 20) {
+            boolean done = driveStraightLoop(DRIVE_SPEED, 60, -90*isRedCoff);
+
+            if (taskRunTimeout.seconds() >= 15) {
                 // timeout, bad! should not happen at all
                 resetDriveLoops();
                 setMissionTo(Mission.EXIT);
@@ -568,10 +568,9 @@ public class RobotAutonomousDrive extends LinearOpMode
     private void RouteShort(int isRedCoff)
     {
         if (currentTaskID == 0) {
-            boolean done = driveStraightLoop(DRIVE_SPEED, 4, 0.0);
+            boolean done = driveStraightLoop(DRIVE_SPEED, distance:48, heading:0.0*isRedCoff );
 
-            if (taskRunTimeout.seconds() >= 9)
-            {
+            if (taskRunTimeout.seconds() >= 15) {
                 // timeout, bad! should not happen at all
                 resetDriveLoops();
                 setMissionTo(Mission.EXIT);
@@ -583,9 +582,9 @@ public class RobotAutonomousDrive extends LinearOpMode
         }
         else if (currentTaskID == 1)
         {
-            boolean done = turnToHeadingLoop(TURN_SPEED, -90 *isRedCoff);
-            if(taskRunTimeout.seconds() >= 6)
-            {
+            boolean done = turnToHeadingLoop(TURN_SPEED, heading:-90 *isRedCoff);
+
+            if(taskRunTimeout.seconds() >= 6) {
                 // timeout, bad! should not happen at all
                 resetDriveLoops();
                 setMissionTo(Mission.EXIT);
@@ -595,9 +594,11 @@ public class RobotAutonomousDrive extends LinearOpMode
                 setTaskTo(2);
             }
         }
-        else if (currentTaskID == 2) {
-            boolean done = driveStraightLoop(DRIVE_SPEED, 36, -90*isRedCoff);
-            if (taskRunTimeout.seconds() >= 15) {
+        else if (currentTaskID == 2)
+        {
+            boolean done = driveStraightLoop(DRIVE_SPEED, distance:20, heading:-90);
+
+            if (taskRunTimeout.seconds() >= 5) {
                 // timeout, bad! should not happen at all
                 resetDriveLoops();
                 setMissionTo(Mission.EXIT);
@@ -626,6 +627,7 @@ public class RobotAutonomousDrive extends LinearOpMode
         else if (currentTaskID == 1)
         {
             boolean done = turnToHeadingLoop(TURN_SPEED, 90);
+
             if(taskRunTimeout.seconds() >= 5)
             {
                 // timeout, bad! should not happen at all
@@ -1453,12 +1455,6 @@ public class RobotAutonomousDrive extends LinearOpMode
     
     private boolean hasInitStrafe = false;
     ElapsedTime runtimeStrafe = new ElapsedTime();
-    // Normalize the heading to be between -180 and 180 degrees
-    private double normalizeHeading(double cheading) {
-        while (cheading > 180) cheading -= 360;
-        while (cheading <= -180) cheading += 360;
-        return cheading;
-    }
     // Positive Inch: move left.
     public boolean driveStrafeLoop(double Inches, double maxSpeed, int timeoutInSeconds, double heading)
     {
@@ -1498,21 +1494,19 @@ public class RobotAutonomousDrive extends LinearOpMode
                 && frontRight.isBusy() && frontLeft.isBusy()
         )
         {
-            double headingError = normalizeHeading(getRawHeading()) - normalizeHeading(heading);
-
             if (Inches < 0)
             {
-                frontLeft.setPower(Range.clip(maxSpeed - headingError / 100, -1, 1));
-                backLeft.setPower(Range.clip(maxSpeed + headingError / 100, -1, 1));
-                backRight.setPower(Range.clip(maxSpeed + headingError / 100, -1, 1));
-                frontRight.setPower(Range.clip(maxSpeed - headingError / 100, -1, 1));
+                frontLeft.setPower(Range.clip(maxSpeed - (getRawHeading() - heading) / 100, -1, 1));
+                backLeft.setPower(Range.clip(maxSpeed + (getRawHeading() - heading) / 100, -1, 1));
+                backRight.setPower(Range.clip(maxSpeed + (getRawHeading() - heading) / 100, -1, 1));
+                frontRight.setPower(Range.clip(maxSpeed - (getRawHeading() - heading) / 100, -1, 1));
             }
             else
             {
-                frontLeft.setPower(Range.clip(maxSpeed + headingError / 100, -1, 1));
-                backLeft.setPower(Range.clip(maxSpeed - headingError / 100, -1, 1));
-                backRight.setPower(Range.clip(maxSpeed - headingError / 100, -1, 1));
-                frontRight.setPower(Range.clip(maxSpeed + headingError / 100, -1, 1));
+                frontLeft.setPower(Range.clip(maxSpeed + (getRawHeading() - heading) / 100, -1, 1));
+                backLeft.setPower(Range.clip(maxSpeed - (getRawHeading() - heading) / 100, -1, 1));
+                backRight.setPower(Range.clip(maxSpeed - (getRawHeading() - heading) / 100, -1, 1));
+                frontRight.setPower(Range.clip(maxSpeed + (getRawHeading() - heading) / 100, -1, 1));
             }
             return false;
             /*if(!backRight.isBusy() || !backLeft.isBusy())
