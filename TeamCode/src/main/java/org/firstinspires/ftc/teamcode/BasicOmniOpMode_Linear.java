@@ -78,8 +78,7 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
     private DcMotor leftBackDrive = null;
     private DcMotor rightFrontDrive = null;
     private DcMotor rightBackDrive = null;
-
-    DcMotor armMotor;
+    private DcMotor armMotor;
     private PID armPID = new PID(0.0035,0,0.025,0.1, 0.5, -0.2);
     private int armTargetPosition = 0;
     private final int armPositionMax = Constants.ARM_POSITION_HIGHEST;
@@ -96,10 +95,10 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
         rightBackDrive = hardwareMap.get(DcMotor.class, Constants.rightbackMotor);
 
         armMotor = hardwareMap.get(DcMotor.class, Constants.armMotor);
-
         armMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         armMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        armMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER); //// Using our own PIDF, RUN_WITHOUT_ENCODER
+        armMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        //// Using our own PIDF, RUN_WITHOUT_ENCODER
         armMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         armTargetPosition = armMotor.getCurrentPosition();
 
