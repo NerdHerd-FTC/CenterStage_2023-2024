@@ -167,8 +167,8 @@ public class EyeAll extends Subsystem
             @Override
             public void onOpened()
             {
-                webcam.startStreaming(Constants.CameraViewWidth, Constants.CameraViewHeight,
-                        OpenCvCameraRotation.UPSIDE_DOWN);
+                webcam.startStreaming(Constants.CameraViewWidth, Constants.CameraViewHeight);
+                       // OpenCvCameraRotation.);
                 IsOpen = true;
             }
     

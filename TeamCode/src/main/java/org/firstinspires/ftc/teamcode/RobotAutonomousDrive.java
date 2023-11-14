@@ -183,7 +183,7 @@ public class RobotAutonomousDrive extends LinearOpMode
     public void runOpMode() throws InterruptedException {
         autoTimer30Sec.reset();
 
-        //eye = new EyeAll(hardwareMap); // comment it out if not camera installed
+        eye = new EyeAll(hardwareMap); // comment it out if not camera installed
 
         if(eye!= null)
         {
@@ -251,6 +251,10 @@ public class RobotAutonomousDrive extends LinearOpMode
         resetHeading();
 
         AllianceConfig.ReadConfigFromFile(allianceConfig);
+<<<<<<< Updated upstream
+=======
+        //allianceConfig.PathRoute = "0"; // todo debug
+>>>>>>> Stashed changes
 
         if(eye!= null)
             eye.OpenEyeToFindProps();
