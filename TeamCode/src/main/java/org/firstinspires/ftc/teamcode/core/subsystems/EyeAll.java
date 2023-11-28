@@ -168,7 +168,7 @@ public class EyeAll extends Subsystem
             public void onOpened()
             {
                 webcam.startStreaming(Constants.CameraViewWidth, Constants.CameraViewHeight,
-                        OpenCvCameraRotation.UPSIDE_DOWN);
+                       OpenCvCameraRotation.UPRIGHT);
                 IsOpen = true;
             }
     
@@ -198,7 +198,7 @@ public class EyeAll extends Subsystem
             public void onOpened()
             {
                 webcam.startStreaming(Constants.CameraViewWidth, Constants.CameraViewHeight,
-                        OpenCvCameraRotation.UPSIDE_DOWN);
+                        OpenCvCameraRotation.UPRIGHT);
                 IsOpen = true;
             }
             
