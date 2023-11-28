@@ -159,13 +159,13 @@ public class RobotAutonomousDrive extends LinearOpMode
     // They can/should be tweaked to suit the specific robot drive train.
     static final double     DRIVE_SPEED             = 0.4;     // Max driving speed for better distance accuracy.
     static final double     TURN_SPEED              = 0.2;     // Max Turn speed to limit turn rate
-    static final double     HEADING_THRESHOLD       = 1.0 ;    // How close must the heading get to the target before moving to next step.
+    static final double     HEADING_THRESHOLD       = 3.0 ;    // How close must the heading get to the target before moving to next step.
                                                                // Requiring more accuracy (a smaller number) will often make the turn take longer to get into the final position.
     // Define the Proportional control coefficient (or GAIN) for "heading control".
     // We define one value when Turning (larger errors), and the other is used when Driving straight (smaller errors).
     // Increase these numbers if the heading does not corrects strongly enough (eg: a heavy robot or using tracks)
     // Decrease these numbers if the heading does not settle on the correct value (eg: very agile robot with omni wheels)
-    static final double     P_TURN_GAIN            = 0.02;     // Larger is more responsive, but also less stable
+    static final double     P_TURN_GAIN            = 0.01;     // Larger is more responsive, but also less stable
     static final double     P_DRIVE_GAIN           = 0.03;     // Larger is more responsive, but also less stable
     
     private final ElapsedTime autoTimer30Sec = new ElapsedTime();
@@ -224,7 +224,6 @@ public class RobotAutonomousDrive extends LinearOpMode
          *
          * To Do:  EDIT these two lines to match YOUR mounting configuration.
          */
-        RevHubOrientationOnRobot.LogoFacingDirection logoDirection = RevHubOrientationOnRobot.LogoFacingDirection.FORWARD;
         RevHubOrientationOnRobot.UsbFacingDirection  usbDirection  = RevHubOrientationOnRobot.UsbFacingDirection.UP;
         RevHubOrientationOnRobot orientationOnRobot = new RevHubOrientationOnRobot(logoDirection, usbDirection);
 
@@ -452,10 +451,10 @@ public class RobotAutonomousDrive extends LinearOpMode
                         if (allianceConfig.Location.equals(AllianceConfig.LEFT)) {
                             if (propsLocation == EyeAll.ObjectLocation.ON_CAMERA_LEFT) {
                                 // Blue Left ==
-                                RedRight_Left(-1);
+                                RedRight_Right(-1);
                             } else if (propsLocation == EyeAll.ObjectLocation.ON_CAMERA_RIGHT) {
                                 // Blue Left ==
-                                RedRight_Right(-1);
+                                RedRight_Left(-1);
                             } else //CENTER as the default
                             {
                                 // Blue Left ==
@@ -465,14 +464,14 @@ public class RobotAutonomousDrive extends LinearOpMode
                         {
                             if (propsLocation == EyeAll.ObjectLocation.ON_CAMERA_LEFT) {
                                 // Blue Right ==
-                                RedLeft_Left(-1);
+                                RedLeft_Right(-1);
                             } else if (propsLocation == EyeAll.ObjectLocation.CENTER) {
                                 // Blue Right ==
                                 RedLeft_Center(-1);
                             } else //ON_CAMERA_RIGHT as the default
                             {
                                 // Blue Right ==
-                                RedLeft_Right(-1);
+                                RedLeft_Left(-1);
                             }
                         }
 
@@ -489,7 +488,7 @@ public class RobotAutonomousDrive extends LinearOpMode
 //        rotatorMotorRunnable();
 //        armMotorRunnable();
     
-        addLog();
+        //addLog();
     }
 
     
@@ -674,7 +673,7 @@ public class RobotAutonomousDrive extends LinearOpMode
         }
         else if (currentTaskID == 4)
         {
-            boolean done = driveStrafeLoop(24, DRIVE_SPEED, 9, 90);;
+            boolean done = driveStrafeLoop(24, DRIVE_SPEED, 9);;
 
             if (taskRunTimeout.seconds() >= 8)
             {
@@ -775,7 +774,7 @@ public class RobotAutonomousDrive extends LinearOpMode
         }
         else if (currentTaskID == 4)
         {
-            boolean done = driveStrafeLoop(-24, DRIVE_SPEED, 9, -90*isRedCoff);;
+            boolean done = driveStrafeLoop(-24, DRIVE_SPEED, 9);;
 
             if (taskRunTimeout.seconds() >= 7)
             {
@@ -834,7 +833,7 @@ public class RobotAutonomousDrive extends LinearOpMode
         }
         else if (currentTaskID == 2)
         {
-            boolean done = driveStrafeLoop(24, DRIVE_SPEED, 9, 0.0);;
+            boolean done = driveStrafeLoop(24, DRIVE_SPEED, 9);;
 
             if (taskRunTimeout.seconds() >= 7)
             {
@@ -911,7 +910,7 @@ public class RobotAutonomousDrive extends LinearOpMode
         }
         else if (currentTaskID == 1)
         {
-            boolean done = turnToHeadingLoop(TURN_SPEED, 90);
+            boolean done = turnToHeadingLoop(TURN_SPEED, 90*isRedCoff);
             if(taskRunTimeout.seconds() >= 5)
             {
                 // timeout, bad! should not happen at all
@@ -925,7 +924,7 @@ public class RobotAutonomousDrive extends LinearOpMode
         }
         else if (currentTaskID == 2)
         {
-            boolean done = driveStraightLoop(DRIVE_SPEED, 4, 90);
+            boolean done = driveStraightLoop(DRIVE_SPEED, 4, 90*isRedCoff);
 
             if (taskRunTimeout.seconds() >= 5)
             {
@@ -940,7 +939,7 @@ public class RobotAutonomousDrive extends LinearOpMode
         }
         else if (currentTaskID == 3)
         {
-            boolean done = driveStraightLoop(DRIVE_SPEED, -24, 90);
+            boolean done = driveStraightLoop(DRIVE_SPEED, -24, 90*isRedCoff);
 
             if (taskRunTimeout.seconds() >= 7)
             {
@@ -955,8 +954,8 @@ public class RobotAutonomousDrive extends LinearOpMode
         }
         else if (currentTaskID == 4)
         {
-            boolean done = turnToHeadingLoop(TURN_SPEED, -45);
-            if(taskRunTimeout.seconds() >= 5)
+            boolean done = turnToHeadingLoop(TURN_SPEED, -90*isRedCoff);
+            if(taskRunTimeout.seconds() >= 7)
             {
                 // timeout, bad! should not happen at all
                 resetDriveLoops();
@@ -969,7 +968,7 @@ public class RobotAutonomousDrive extends LinearOpMode
         }
         else if (currentTaskID == 5)
         {
-            boolean done = driveStraightLoop(DRIVE_SPEED, -24, -45);
+            boolean done = driveStraightLoop(DRIVE_SPEED, 24, -90*isRedCoff);
 
             if (taskRunTimeout.seconds() >= 7)
             {
@@ -1002,21 +1001,22 @@ public class RobotAutonomousDrive extends LinearOpMode
         }
         else if (currentTaskID == 1)
         {
-            boolean done = turnToHeadingLoop(TURN_SPEED, -90);
-            if(taskRunTimeout.seconds() >= 5)
+            boolean done = driveStrafeLoop(-12*isRedCoff, DRIVE_SPEED, 9);;
+
+            if (taskRunTimeout.seconds() >= 7)
             {
                 // timeout, bad! should not happen at all
                 resetDriveLoops();
                 setMissionTo(Mission.EXIT);
             }
-            else if( done )
+            else if (done)
             {
-                setTaskTo(2);
+                setTaskTo( 2);
             }
         }
         else if (currentTaskID == 2)
         {
-            boolean done = driveStraightLoop(DRIVE_SPEED, 4, -90);
+            boolean done = driveStraightLoop(DRIVE_SPEED, -4, 0);
 
             if (taskRunTimeout.seconds() >= 5)
             {
@@ -1029,9 +1029,23 @@ public class RobotAutonomousDrive extends LinearOpMode
                 setTaskTo(3);
             }
         }
-        else if (currentTaskID == 3)
+        else if (currentTaskID ==  3)
         {
-            boolean done = driveStraightLoop(DRIVE_SPEED, -8, -90);
+            boolean done = turnToHeadingLoop(TURN_SPEED, -90*isRedCoff);
+            if(taskRunTimeout.seconds() >= 5)
+            {
+                // timeout, bad! should not happen at all
+                resetDriveLoops();
+                setMissionTo(Mission.EXIT);
+            }
+            else if( done )
+            {
+                setTaskTo(4);
+            }
+        }
+        else if (currentTaskID == 4)
+        {
+            boolean done = driveStraightLoop(DRIVE_SPEED, 24, -90*isRedCoff);
 
             if (taskRunTimeout.seconds() >= 5)
             {
@@ -1039,33 +1053,7 @@ public class RobotAutonomousDrive extends LinearOpMode
                 resetDriveLoops();
                 setMissionTo(Mission.EXIT);
             }
-            else if (done)
-            {
-                setTaskTo(4);
-            }
-        }
-        else if (currentTaskID == 4)
-        {
-            boolean done = driveStrafeLoop(20, DRIVE_SPEED, 9, -90);;
-
-            if (taskRunTimeout.seconds() >= 7)
-            {
-                // timeout, bad! should not happen at all
-                resetDriveLoops();
-                setMissionTo(Mission.EXIT);
-            }
-            else if (done)
-            {
-                setTaskTo(5);
-            }
-        }
-        else if (currentTaskID == 5) {
-            boolean done = driveStraightLoop(DRIVE_SPEED, 24, -90);
-            if (taskRunTimeout.seconds() >= 7) {
-                // timeout, bad! should not happen at all
-                resetDriveLoops();
-                setMissionTo(Mission.EXIT);
-            } else if (done) {
+            else if (done) {
                 setMissionTo(Mission.EXIT);
             }
         }
@@ -1090,7 +1078,7 @@ public class RobotAutonomousDrive extends LinearOpMode
         }
         else if (currentTaskID == 1)
         {
-            boolean done = driveStraightLoop(DRIVE_SPEED, -20, 0.0);
+            boolean done = driveStraightLoop(DRIVE_SPEED, -5, 0.0);
 
             if (taskRunTimeout.seconds() >= 7)
             {
@@ -1385,12 +1373,13 @@ public class RobotAutonomousDrive extends LinearOpMode
             // Run getSteeringCorrection() once to pre-calculate the current error
             getSteeringCorrection(heading, P_DRIVE_GAIN);
         }
-    
+
+        // Determine required steering to keep on heading
+        turnSpeed = getSteeringCorrection(heading, P_TURN_GAIN);
+
         // keep looping while we are still active, and not on heading.
         if (Math.abs(headingError) > HEADING_THRESHOLD)
         {
-            // Determine required steering to keep on heading
-            turnSpeed = getSteeringCorrection(heading, P_TURN_GAIN);
 
             // Clip the speed to the maximum permitted value.
             turnSpeed = Range.clip(turnSpeed, -maxTurnSpeed, maxTurnSpeed);
@@ -1459,20 +1448,20 @@ public class RobotAutonomousDrive extends LinearOpMode
     private boolean hasInitStrafe = false;
     ElapsedTime runtimeStrafe = new ElapsedTime();
     // Positive Inch: move left.
-    public boolean driveStrafeLoop(double Inches, double maxSpeed, int timeoutInSeconds, double heading)
+    public boolean driveStrafeLoop(double Inches, double maxSpeed, int timeoutInSeconds)
     {
         if(!hasInitStrafe)
         {
             hasInitStrafe = true;
             int a, b, c, d;
-            if (Inches < 0)
+            /*/if (Inches < 0)
             {
                 a = frontRight.getCurrentPosition() - (int) (Inches * COUNTS_PER_INCH);
                 b = frontLeft.getCurrentPosition() + (int) (Inches * COUNTS_PER_INCH);
                 c = backRight.getCurrentPosition() + (int) (Inches * COUNTS_PER_INCH);
                 d = backLeft.getCurrentPosition() - (int) (Inches * COUNTS_PER_INCH);
             }
-            else
+            else/*/
             {// move to left side, stay at the robot back to see
                 a = frontRight.getCurrentPosition() + (int) (Inches * COUNTS_PER_INCH);
                 b = frontLeft.getCurrentPosition() - (int) (Inches * COUNTS_PER_INCH);
@@ -1497,7 +1486,7 @@ public class RobotAutonomousDrive extends LinearOpMode
                 && frontRight.isBusy() && frontLeft.isBusy()
         )
         {
-            if (Inches < 0)
+            /*if (Inches < 0)
             {
                 frontLeft.setPower(Range.clip(maxSpeed - (getRawHeading() - heading) / 100, -1, 1));
                 backLeft.setPower(Range.clip(maxSpeed + (getRawHeading() - heading) / 100, -1, 1));
@@ -1510,7 +1499,14 @@ public class RobotAutonomousDrive extends LinearOpMode
                 backLeft.setPower(Range.clip(maxSpeed - (getRawHeading() - heading) / 100, -1, 1));
                 backRight.setPower(Range.clip(maxSpeed - (getRawHeading() - heading) / 100, -1, 1));
                 frontRight.setPower(Range.clip(maxSpeed + (getRawHeading() - heading) / 100, -1, 1));
+            }*/
+             {
+                frontLeft.setPower(0.5);
+                backLeft.setPower(0.5);
+                backRight.setPower(0.5);
+                frontRight.setPower(0.5);
             }
+
             return false;
             /*if(!backRight.isBusy() || !backLeft.isBusy())
             {
