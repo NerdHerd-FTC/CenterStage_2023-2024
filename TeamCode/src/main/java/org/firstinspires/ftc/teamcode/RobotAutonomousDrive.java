@@ -568,7 +568,7 @@ public class RobotAutonomousDrive extends LinearOpMode
     private void RouteShort(int isRedCoff)
     {
         if (currentTaskID == 0) {
-            boolean done = driveStraightLoop(DRIVE_SPEED, distance:48, heading:0.0*isRedCoff );
+            boolean done = driveStraightLoop(DRIVE_SPEED, 48, 0.0*isRedCoff );
 
             if (taskRunTimeout.seconds() >= 15) {
                 // timeout, bad! should not happen at all
@@ -582,7 +582,7 @@ public class RobotAutonomousDrive extends LinearOpMode
         }
         else if (currentTaskID == 1)
         {
-            boolean done = turnToHeadingLoop(TURN_SPEED, heading:-90 *isRedCoff);
+            boolean done = turnToHeadingLoop(TURN_SPEED, -90 *isRedCoff);
 
             if(taskRunTimeout.seconds() >= 6) {
                 // timeout, bad! should not happen at all
@@ -596,7 +596,7 @@ public class RobotAutonomousDrive extends LinearOpMode
         }
         else if (currentTaskID == 2)
         {
-            boolean done = driveStraightLoop(DRIVE_SPEED, distance:20, heading:-90);
+            boolean done = driveStraightLoop(DRIVE_SPEED, 20, -90);
 
             if (taskRunTimeout.seconds() >= 5) {
                 // timeout, bad! should not happen at all
