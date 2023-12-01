@@ -78,11 +78,44 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
     private DcMotor leftBackDrive = null;
     private DcMotor rightFrontDrive = null;
     private DcMotor rightBackDrive = null;
-    private DcMotor armMotor;
-    private PID armPID = new PID(0.0035,0,0.025,0.1, 0.5, -0.2);
-    private int armTargetPosition = 0;
-    private final int armPositionMax = Constants.ARM_POSITION_HIGHEST;
-    private final int armPositionMin = Constants.ARM_POSITION_LOWEST;
+    private DcMotor armMotor = null;
+    private DcMotor wristMotor = null;
+    private Servo gripperRight = null;
+    private Servo gripperLeft = null;
+    private int armDownTargetPosition = 100;
+    private int armUpTargetPosition = 11500;
+    private int armStartPosition = 0;
+    private int armCurrentPosition = 0;
+    private int wristCurrentPosition = 0;
+    private int wristStartPosition = 0;
+    private int wristUpTargetPosition = 0;
+    private int wristScoreTargetPosition = -400;
+    private int wristDownTargetPosition = -2300;
+    private int gripperleft_Open = 0;
+    private int gripperleft_Close = 0;
+    private int gripperleftCurrentPosition = 0;
+    private double gripperLeftClosedPosition = 0.425;
+    private double gripperRightClosedPosition = 0.6;
+    private double gripperLeftOpenPosition = 0.6;
+    private double gripperRightOpenPosition = 0.45;
+
+    static final double     ARM_UP_SPEED   = 1.0;
+    static final double     ARM_DOWN_SPEED   = 0.5;
+    static final double     WRIST_UP_SPEED = 0.5;
+    static final double     WRIST_DOWN_SPEED = 0.5;
+    static final double     GRIPPER_SPEED = 0.1;
+    double arm_move_power =  0;
+    double wrist_move_power = 0;
+    double gripper_move_power = 0;
+
+    double wristkP = .01;
+    double wristkD = 0;
+    double wristkI = 0;
+    double armkP = .01;
+    double armkD = 0;
+    double armkI = 0;
+    double wristPower = 0;
+    double armPower = 0;
 
     @Override
     public void runOpMode() {
@@ -94,13 +127,29 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
         rightFrontDrive = hardwareMap.get(DcMotor.class, Constants.rightfrontMotor);
         rightBackDrive = hardwareMap.get(DcMotor.class, Constants.rightbackMotor);
 
-        armMotor = hardwareMap.get(DcMotor.class, Constants.armMotor);
-        armMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        armMotor = hardwareMap.get(DcMotor.class, "armMotor");
+        wristMotor = hardwareMap.get(DcMotor.class, "wristMotor");
+        gripperLeft = hardwareMap.get(Servo.class, "gripperLeft");
+        gripperRight = hardwareMap.get(Servo.class, "gripperRight");
+
+        gripperLeft.setDirection(Servo.Direction.FORWARD);
+        gripperRight.setDirection(Servo.Direction.FORWARD);
+
+        armMotor.setDirection(DcMotorSimple.Direction.FORWARD);
         armMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         armMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        //// Using our own PIDF, RUN_WITHOUT_ENCODER
+
+        // Using our own PIDF, RUN_WITHOUT_ENCODER
         armMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        armTargetPosition = armMotor.getCurrentPosition();
+        armStartPosition = armMotor.getCurrentPosition();
+
+        wristMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        wristMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        wristMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+        // Using our own PIDF, RUN_WITHOUT_ENCODER
+        wristMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        wristStartPosition = wristMotor.getCurrentPosition();
 
         // ########################################################################################
         // !!!            IMPORTANT Drive Information. Test your motor directions.            !!!!!
@@ -123,6 +172,12 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
         telemetry.addData("Status", "Initialized");
         telemetry.update();
 
+        PIDController wristPID = new PIDController(wristkP, wristkI, wristkD);
+        wristPID.setTolerance(30, 10);
+
+        PIDController armPID = new PIDController(armkP, armkI, armkD);
+        armPID.setTolerance(300, 10);
+
         waitForStart();
         runtime.reset();
 
@@ -134,6 +189,8 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
             double axial   = -gamepad1.left_stick_y;  // Note: pushing stick forward gives negative value
             double lateral =  gamepad1.left_stick_x;
             double yaw     =  gamepad1.right_stick_x;
+            double arm_move = -gamepad2.left_stick_y;
+            double wrist_move = -gamepad2.right_stick_y;
 
             // Combine the joystick requests for each axis-motion to determine each wheel's power.
             // Set up a variable for each drive wheel to save the power level for telemetry.
@@ -178,32 +235,64 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
             leftBackDrive.setPower(leftBackPower);
             rightBackDrive.setPower(rightBackPower);
 
-
-            if(gamepad2.y)
+            if (gamepad2.left_bumper)
             {
-                armTargetPosition = 1200;
+                gripperLeft.setPosition(gripperLeftOpenPosition );
+            } else
+            {
+                gripperLeft.setPosition(gripperLeftClosedPosition);
+            }
+
+            if (gamepad2.right_bumper)
+            {
+                gripperRight.setPosition(gripperRightOpenPosition );
+            } else
+            {
+                gripperRight.setPosition(gripperRightClosedPosition);
+            }
+
+            armCurrentPosition = armMotor.getCurrentPosition();
+            wristCurrentPosition = wristMotor.getCurrentPosition();
+
+            if(!(arm_move == 0))
+            {
+                armCurrentPosition = armMotor.getCurrentPosition();
+                armPID.setSetPoint(armCurrentPosition + (50 * arm_move));
+            }
+            if(!(wrist_move == 0))
+            {
+                wristCurrentPosition = wristMotor.getCurrentPosition();
+                wristPID.setSetPoint(wristCurrentPosition + (50 * wrist_move));
             }
             if(gamepad2.a)
             {
-                armTargetPosition = -200;
+                wristPID.setSetPoint(wristDownTargetPosition);
+                armPID.setSetPoint(armDownTargetPosition);
             }
-            double updown = -1 * Util.applyDeadband(gamepad2.left_stick_y, 0.1);
-            if( updown > 0)
-                updown = updown * 60;
-            else
-                updown = updown * 40;
-            armTargetPosition += updown;
 
-            runnableArmMotor();
+            if(gamepad2.y)
+            {
+                wristPID.setSetPoint(wristScoreTargetPosition);
+                armPID.setSetPoint(armUpTargetPosition);
+            }
+
+            //while (!wristPID.atSetPoint()) {
+            wristCurrentPosition = wristMotor.getCurrentPosition();
+            wristPower = wristPID.calculate(wristCurrentPosition);
+
+            armCurrentPosition = armMotor.getCurrentPosition();
+            armPower = armPID.calculate(armCurrentPosition);
+            //}
+            wristMotor.setPower(wristPower);
+            armMotor.setPower(armPower);
 
 
             // Show the elapsed game time and wheel power.
             telemetry.addData("Status", "Run Time: " + runtime.toString());
             telemetry.addData("Front left/Right", "%4.2f, %4.2f", leftFrontPower, rightFrontPower);
             telemetry.addData("Back  left/Right", "%4.2f, %4.2f", leftBackPower, rightBackPower);
-
-            telemetry.addData("Arm Current: ", armMotor.getCurrentPosition());
-            telemetry.addData("Arm Target", armTargetPosition);
+            telemetry.addData("Current Arm Position", "%4d,", armCurrentPosition );
+            telemetry.addData("Current Wrist Position", "%4d", wristCurrentPosition);
             telemetry.update();
         }
     }
